@@ -1,0 +1,15 @@
+{
+  "name": "heritech-ai-backend",
+  "version": "1.0.0",
+  "description": "Local backend for HeriTech voice assistant",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.0",
+    "dotenv": "^16.4.2",
+    "express": "^4.21.2",
+    "openai": "^4.53.2"
+  }
+}

@@ -170,6 +170,7 @@ function init() {
   setupCanvasEvents();
   renderLibrarySidebar();
   bindUIEvents();
+  setupVoiceControls();
   guardTutorialImages();
 }
 
@@ -837,10 +838,25 @@ function openTutorial() {
 let aiLoading      = false;
 let funfactHistory = [];
 let chatHistory    = [];
+let speechRecognition = null;
+let isListening = false;
+let lastVoiceTranscript = '';
+let voiceFallbackMode = false;
+
+// Recognizes any way of running the frontend locally — plain
+// 'localhost', '127.0.0.1'/'::1' (e.g. VS Code Live Server, which
+// defaults to 127.0.0.1), or index.html opened directly as a file
+// (empty hostname). Previously only the literal string 'localhost'
+// matched, so anything else silently fell through to the template
+// author's own hosted backend instead of the local one.
+function isLocalDev() {
+  const h = window.location.hostname;
+  return h === 'localhost' || h === '127.0.0.1' || h === '::1' || h === '' || window.location.protocol === 'file:';
+}
 
 async function callAI(systemPrompt, messages) {
-  const BACKEND_URL = window.location.hostname === 'localhost' 
-    ? 'http://localhost:3000/api/chat' 
+  const BACKEND_URL = isLocalDev()
+    ? 'http://localhost:3000/api/chat'
     : 'https://heri-tech.vercel.app/api/chat';
 
   const response = await fetch(BACKEND_URL, {
@@ -864,6 +880,232 @@ async function callAI(systemPrompt, messages) {
 
 function showAiOffline(show) {
   document.getElementById('aiOfflineBanner').classList.toggle('show', !!show);
+}
+
+// ============================================================
+//  TEXT-TO-SPEECH (TTS) MODULE — standalone from the mic/STT
+//  code below. Anything that wants to read text aloud calls
+//  speakText(text); anything that wants to interrupt it calls
+//  stopSpeaking(). Each AI chat bubble AND the Fun Fact card get
+//  their own Replay/Stop pair (see buildTtsControls) so any past
+//  reply or fact can be re-read, not just the most recent one.
+// ============================================================
+let isSpeaking = false;
+
+function ttsSupported() {
+  return 'speechSynthesis' in window;
+}
+
+function speakText(text) {
+  if (!text || !ttsSupported()) return;
+  window.speechSynthesis.cancel(); // interrupt whatever is currently playing
+
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'en-US';
+  utter.rate = 1.0;
+
+  utter.onstart = () => { isSpeaking = true;  updateTtsButtons(); };
+  utter.onend   = () => { isSpeaking = false; updateTtsButtons(); };
+  utter.onerror = () => {
+    isSpeaking = false;
+    updateTtsButtons();
+    setVoiceStatus('Voice readout failed. See console for details.');
+  };
+
+  window.speechSynthesis.speak(utter);
+}
+
+function stopSpeaking() {
+  if (!ttsSupported()) return;
+  window.speechSynthesis.cancel();
+  isSpeaking = false;
+  updateTtsButtons();
+}
+
+// Keeps every Replay/Stop button — in chat bubbles AND the Fun Fact
+// card — in sync with playback state, since speechSynthesis only
+// ever plays one utterance at a time regardless of which one
+// triggered it.
+function updateTtsButtons() {
+  document.querySelectorAll('.tts-replay').forEach(b => b.disabled = !ttsSupported());
+  document.querySelectorAll('.tts-stop').forEach(b => b.disabled = !isSpeaking);
+}
+
+
+function setVoiceStatus(message) {
+  const el = document.getElementById('chatVoiceStatus');
+  if (!el) return;
+  el.textContent = message;
+
+  // small visual feedback even if styles don't exist
+  el.style.opacity = '1';
+  el.style.transform = 'translateY(0)';
+}
+
+
+async function ensureMicrophoneAccess() {
+  if (!window.isSecureContext) {
+    setVoiceStatus('Voice input needs HTTPS (or localhost) to access the microphone.');
+    return false;
+  }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    setVoiceStatus('Microphone access is not available in this browser.');
+    return false;
+  }
+
+  try {
+    setVoiceStatus('Requesting microphone access...');
+    // This call exists only to trigger the permission prompt and get a
+    // specific error name (NotAllowedError / NotFoundError) up front.
+    // SpeechRecognition captures its own audio internally, so the stream
+    // is released immediately rather than held open — keeping it open
+    // caused SpeechRecognition's own mic request to conflict on some
+    // browsers/drivers ("microphone is busy" even on first use).
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream.getTracks().forEach(track => track.stop());
+    return true;
+  } catch (error) {
+    let message = 'Microphone permission was denied.';
+    if (error.name === 'NotAllowedError') {
+      message = 'Please allow microphone access for this site.';
+    } else if (error.name === 'NotFoundError') {
+      message = 'No microphone was found on this device.';
+    }
+    setVoiceStatus(message);
+    return false;
+  }
+}
+
+function fallbackVoiceInput() {
+  voiceFallbackMode = true;
+  const input = document.getElementById('chatInput');
+  const message = !window.isSecureContext
+    ? 'Voice input needs HTTPS (or localhost) here. You can still type your question below.'
+    : 'Voice input is not supported in this browser. You can still type your question below.';
+  setVoiceStatus(message);
+  if (input) {
+    input.focus();
+    input.placeholder = 'Type your question here instead...';
+  }
+}
+
+async function toggleVoiceInput() {
+  if (!speechRecognition) {
+    fallbackVoiceInput();
+    return;
+  }
+
+  if (isListening) {
+    speechRecognition.stop();
+    return;
+  }
+
+  lastVoiceTranscript = '';
+  document.getElementById('chatInput').value = '';
+
+  const granted = await ensureMicrophoneAccess();
+  if (!granted) {
+    fallbackVoiceInput();
+    return;
+  }
+
+  try {
+    setVoiceStatus('Listening... speak now.');
+    speechRecognition.start();
+  } catch {
+    setVoiceStatus('Microphone is busy. Please try again.');
+  }
+}
+
+function setupVoiceControls() {
+  const voiceBtn = document.getElementById('chatVoiceBtn');
+  const stopBtn = document.getElementById('chatStopBtn');
+  const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!voiceBtn || !stopBtn) return;
+
+  stopBtn.disabled = true;
+
+  // Unsupported browser (e.g. Firefox/Safari) or insecure context
+  // (mic access requires HTTPS or localhost). Bind the click handler
+  // to fallbackVoiceInput() rather than returning early — previously
+  // the listener was never attached in this branch, so the button
+  // silently did nothing on every click after the first page load.
+  if (!SpeechRecognitionCtor || !window.isSecureContext) {
+    voiceBtn.addEventListener('click', fallbackVoiceInput);
+    fallbackVoiceInput();
+    return;
+  }
+
+  speechRecognition = new SpeechRecognitionCtor();
+  speechRecognition.continuous = false;
+  speechRecognition.interimResults = true;
+  speechRecognition.lang = 'en-US';
+
+  speechRecognition.onstart = () => {
+    isListening = true;
+    voiceBtn.classList.add('listening');
+    voiceBtn.title = 'Listening...';
+    stopBtn.disabled = false;
+    setVoiceStatus('Listening... speak now.');
+  };
+
+  speechRecognition.onresult = (event) => {
+    let interim = '';
+    let finalText = '';
+
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const transcript = event.results[i][0].transcript.trim();
+      if (event.results[i].isFinal) {
+        finalText += (finalText ? ' ' : '') + transcript;
+      } else {
+        interim += (interim ? ' ' : '') + transcript;
+      }
+    }
+
+    if (finalText) {
+      lastVoiceTranscript = finalText;
+      document.getElementById('chatInput').value = lastVoiceTranscript;
+      setVoiceStatus('Voice captured. Sending your question...');
+      window.setTimeout(() => {
+        if (document.getElementById('chatInput').value.trim()) {
+          sendChat();
+        }
+      }, 350);
+    } else {
+      document.getElementById('chatInput').value = interim;
+      setVoiceStatus('Listening...');
+    }
+  };
+
+  speechRecognition.onerror = (event) => {
+    isListening = false;
+    voiceBtn.classList.remove('listening');
+    stopBtn.disabled = true;
+    const errorMessage = event.error === 'not-allowed'
+      ? 'Please allow microphone access for this site.'
+      : `Voice error: ${event.error}`;
+    setVoiceStatus(errorMessage);
+  };
+
+  speechRecognition.onend = () => {
+    isListening = false;
+    voiceBtn.classList.remove('listening');
+    stopBtn.disabled = true;
+    if (lastVoiceTranscript.trim()) {
+      setVoiceStatus('Voice captured.');
+    } else {
+      setVoiceStatus('Tap the mic and speak your question.');
+    }
+    voiceBtn.title = 'Speak your question';
+  };
+
+  voiceBtn.addEventListener('click', toggleVoiceInput);
+  stopBtn.addEventListener('click', () => {
+    if (speechRecognition && isListening) {
+      speechRecognition.stop();
+    }
+  });
 }
 
 function toggleAiDrawer() {
@@ -908,8 +1150,8 @@ async function loadFunFact() {
         funfactHistory.push(prevText);
         renderFunfactHistory();
       }
-      card.innerHTML = '<div class="funfact-badge">★ Orang Ulu Fun Fact</div>' +
-        '<div class="funfact-text" id="funfactText">' + escHtml(text) + '</div>';
+      renderFunfactCard(text);
+      speakText(text);
     }
   } catch (e) {
     card.innerHTML = '<div class="funfact-badge">★ Error</div>' +
@@ -919,6 +1161,27 @@ async function loadFunFact() {
   aiLoading = false;
   btn.disabled = false;
   btn.textContent = '✨ New Fun Fact';
+}
+
+// Renders a successful fact into the card with its own Replay/Stop
+// controls, so a previously-heard fact can be replayed on demand
+// (mirrors buildTtsControls' use in the chat panel).
+function renderFunfactCard(text) {
+  const card = document.getElementById('funfactCard');
+  card.innerHTML = '';
+
+  const badge = document.createElement('div');
+  badge.className = 'funfact-badge';
+  badge.textContent = '★ Orang Ulu Fun Fact';
+  card.appendChild(badge);
+
+  const body = document.createElement('div');
+  body.className = 'funfact-text';
+  body.id = 'funfactText';
+  body.textContent = text;
+  card.appendChild(body);
+
+  card.appendChild(buildTtsControls(text));
 }
 
 function renderFunfactHistory() {
@@ -935,11 +1198,49 @@ function appendChatMsg(role, text) {
   const box = document.getElementById('chatMessages');
   const div = document.createElement('div');
   div.className = 'chat-msg ' + role;
-  div.innerHTML = '<div class="chat-msg-label">' +
-    (role === 'user' ? 'You' : 'HeriTech AI') + '</div>' + escHtml(text);
+
+  const label = document.createElement('div');
+  label.className = 'chat-msg-label';
+  label.textContent = role === 'user' ? 'You' : 'HeriTech AI';
+  div.appendChild(label);
+
+  const body = document.createElement('div');
+  body.className = 'chat-msg-text';
+  body.textContent = text;
+  div.appendChild(body);
+
+  // Only finished AI replies get playback controls — user bubbles and
+  // the "thinking…" placeholder don't need them.
+  if (role === 'ai' && text) {
+    div.appendChild(buildTtsControls(text));
+  }
+
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
   return div;
+}
+
+// Builds a Replay/Stop button pair wired to speak `text`. Shared by
+// chat bubbles (appendChatMsg) and the Fun Fact card (loadFunFact).
+function buildTtsControls(text) {
+  const controls = document.createElement('div');
+  controls.className = 'tts-controls';
+
+  const replayBtn = document.createElement('button');
+  replayBtn.className = 'tts-btn tts-replay';
+  replayBtn.textContent = '🔊 Replay';
+  replayBtn.disabled = !ttsSupported();
+  replayBtn.addEventListener('click', () => speakText(text));
+
+  const stopBtn = document.createElement('button');
+  stopBtn.className = 'tts-btn tts-stop';
+  stopBtn.textContent = '⏹ Stop';
+  stopBtn.disabled = !isSpeaking;
+  stopBtn.addEventListener('click', stopSpeaking);
+
+  controls.appendChild(replayBtn);
+  controls.appendChild(stopBtn);
+  return controls;
 }
 
 function chatKeydown(e) {
@@ -983,7 +1284,9 @@ async function sendChat() {
     thinking.remove();
     showAiOffline(false);
     chatHistory.push({ role: 'assistant', content: reply });
-    appendChatMsg('ai', reply || 'Sorry, I could not generate a response.');
+    const replyText = reply || 'Sorry, I could not generate a response.';
+    appendChatMsg('ai', replyText);
+    speakText(replyText);
   } catch (e) {
     thinking.remove();
     appendChatMsg('ai', '⚠ Error: ' + e.message);

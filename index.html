@@ -6,16 +6,21 @@
 <title>HeriTech Pattern Studio</title>
 <link rel="icon" type="image/svg+xml" href="logo-withbg.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
-   DESIGN TOKENS — High Contrast Traditional
+   DESIGN TOKENS — Orang Ulu Beadwork Palette
+   Black / gold / crimson are the traditional manik (bead) colors;
+   teal is added as a secondary accent only for the new decorative
+   flourishes below — none of the functional colors (buttons,
+   active states, alerts) change meaning.
    ============================================================ */
 :root {
   --bone:     #FFFDF2;   /* main background */
   --gold:     #FFB800;   /* primary buttons, active states */
   --black:    #000000;   /* borders, text, canvas outline */
   --crimson:  #8B0000;   /* hover, links, secondary */
+  --teal:     #1F6B63;   /* decorative accent only — corner flourishes */
   --gold-dim: rgba(255,184,0,0.12);
   --gold-med: rgba(255,184,0,0.25);
   --crimson-dim: rgba(139,0,0,0.08);
@@ -23,6 +28,17 @@
   --muted:    #6B6454;
   --border:   rgba(0,0,0,0.12);
   --border-dark: rgba(0,0,0,0.25);
+
+  --font-display: 'Fraunces', Georgia, serif;
+
+  /* Abstracted curvilinear hook/tendril line-work, in the spirit of
+     Orang Ulu carving and beadwork borders — deliberately generic
+     rather than a literal Aso or other figurative motif, since those
+     carry specific rank/lineage meaning in Kenyah/Kayan tradition. */
+  --tendril-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='6' viewBox='0 0 12 6'%3E%3Cpath d='M0,3 Q3,0 6,3 T12,3' fill='none' stroke='%23FFB800' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");
+  --motif-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cpath d='M10,50 C10,30 30,30 30,10 M50,10 C50,30 30,30 30,50' fill='none' stroke='%23000000' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  --hook-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2,9 C2,4 6,2 9,4 C11,5.5 10,8 7,7.5 C5.5,7.2 5.5,5 7,5' fill='none' stroke='%238B0000' stroke-width='1.3' stroke-linecap='round'/%3E%3C/svg%3E");
+  --corner-flourish: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M4,24 C4,14 14,14 14,4 M24,4 C24,14 14,14 14,24' fill='none' stroke='%231F6B63' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
 }
 
 /* ============================================================
@@ -37,6 +53,7 @@ body {
   font-weight: 400;
   min-height: 100vh;
   overflow: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* ============================================================
@@ -44,13 +61,10 @@ body {
    ============================================================ */
 .accent-bar {
   height: 5px;
-  background: repeating-linear-gradient(
-    90deg,
-    var(--gold) 0, var(--gold) 10px,
-    var(--black) 10px, var(--black) 20px,
-    var(--crimson) 20px, var(--crimson) 30px,
-    var(--bone) 30px, var(--bone) 40px
-  );
+  background-color: var(--black);
+  background-image: var(--tendril-svg);
+  background-repeat: repeat-x;
+  background-size: 12px 5px;
 }
 
 /* ============================================================
@@ -62,8 +76,19 @@ header {
   justify-content: space-between;
   padding: 12px 24px;
   background: var(--bone);
-  border-bottom: 2px solid var(--black);
   height: 58px;
+  position: relative;
+}
+/* Echoes the top accent bar as an inset trim instead of a flat rule */
+header::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 4px;
+  background-color: var(--black);
+  background-image: var(--tendril-svg);
+  background-repeat: repeat-x;
+  background-size: 11px 4px;
 }
 
 .logo {
@@ -77,9 +102,10 @@ header {
   flex-shrink: 0;
 }
 .logo-text h1 {
-  font-size: 0.88rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-family: var(--font-display);
+  font-size: 0.98rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--black);
   line-height: 1.2;
@@ -135,17 +161,112 @@ main {
   height: calc(100vh - 63px);
 }
 
+@media (max-width: 980px) {
+  body { overflow: auto; }
+  main {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "top"
+      "middle"
+      "bottom";
+    height: auto;
+  }
+
+  .left-panel,
+  .right-panel,
+  .canvas-area {
+    min-height: auto;
+  }
+
+  .left-panel,
+  .right-panel {
+    border-right: none;
+    border-bottom: 2px solid var(--black);
+  }
+
+  .canvas-area {
+    order: 2;
+  }
+
+  .right-panel {
+    order: 3;
+  }
+}
+
+@media (max-width: 640px) {
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    height: auto;
+    padding: 12px 14px;
+  }
+
+  .header-steps {
+    flex-wrap: wrap;
+  }
+
+  .ai-toggle-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .ai-drawer {
+    width: 100vw;
+  }
+
+  .chat-input-row {
+    flex-wrap: wrap;
+  }
+
+  .chat-input-row textarea {
+    width: 100%;
+    min-height: 48px;
+    height: 48px;
+  }
+
+  .chat-voice-btn,
+  .chat-stop-btn,
+  .chat-send-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .canvas-toolbar {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .ctb-btn,
+  .gcode-btn,
+  .gen-btn,
+  .send-btn {
+    width: 100%;
+  }
+}
+
 /* ============================================================
    SHARED PANEL STYLES
    ============================================================ */
 .panel-title {
-  font-size: 0.63rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted);
   padding: 11px 16px 9px;
   border-bottom: 1px solid var(--border-dark);
+}
+.panel-title::before {
+  content: '';
+  display: inline-block;
+  width: 12px; height: 12px;
+  margin-right: 6px;
+  vertical-align: -2px;
+  background-image: var(--hook-icon);
+  background-repeat: no-repeat;
+  opacity: 0.7;
 }
 
 /* ============================================================
@@ -158,6 +279,19 @@ main {
   flex-direction: column;
   overflow: hidden;
   position: relative;
+}
+/* Faint woven-mat texture — a nod to beadwork boards without competing with content */
+.left-panel::before,
+.right-panel::before,
+.canvas-area::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--motif-tile);
+  background-repeat: repeat;
+  opacity: 0.035;
+  pointer-events: none;
+  z-index: -1;
 }
 
 /* Mode toggle */
@@ -333,6 +467,7 @@ main {
 }
 input[type=range] {
   flex: 1;
+  appearance: none;
   -webkit-appearance: none;
   height: 3px;
   background: var(--border-dark);
@@ -476,6 +611,7 @@ input[type=range]::-webkit-slider-thumb {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
 }
 
 /* G-Code section */
@@ -494,8 +630,9 @@ input[type=range]::-webkit-slider-thumb {
   margin-bottom: 8px;
 }
 .gcode-title {
-  font-size: 0.63rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted);
@@ -550,6 +687,7 @@ input[type=range]::-webkit-slider-thumb {
   padding: 9px;
   cursor: pointer;
   transition: all 0.2s;
+  position: relative;
 }
 .gen-btn:hover {
   background: #E6A600;
@@ -561,14 +699,32 @@ input[type=range]::-webkit-slider-thumb {
   box-shadow: none;
 }
 
+/* Beaded trim — a row of tiny inset "beads" on the app's primary
+   call-to-action buttons, standing in for a literal stitched bead
+   edge without touching each button's existing gold identity. */
+.gen-btn::after,
+.funfact-new-btn::after,
+.ai-toggle-btn::after {
+  content: '';
+  position: absolute;
+  left: 10px; right: 10px; bottom: 3px;
+  height: 3px;
+  background-image: radial-gradient(circle, var(--black) 1.1px, transparent 1.3px);
+  background-repeat: repeat-x;
+  background-size: 8px 3px;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
 /* Send section */
 .send-section {
   padding: 12px 14px;
   border-top: 1px solid var(--border-dark);
 }
 .send-panel-label {
-  font-size: 0.63rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted);
@@ -641,14 +797,38 @@ input[type=range]::-webkit-slider-thumb {
   width: 90%;
   text-align: center;
   box-shadow: 6px 6px 0 var(--black);
+  position: relative;
+  overflow: hidden;
+}
+.modal::after {
+  content: '';
+  position: absolute;
+  bottom: 6px; right: 6px;
+  width: 24px; height: 24px;
+  background-image: var(--corner-flourish);
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 0.3;
+  pointer-events: none;
 }
 .modal-icon { font-size: 2rem; margin-bottom: 10px; }
 .modal h2 {
-  font-size: 1rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
   color: var(--black);
   margin-bottom: 8px;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
+}
+.modal h2::before {
+  content: '';
+  display: inline-block;
+  width: 12px; height: 12px;
+  margin-right: 6px;
+  vertical-align: -1px;
+  background-image: var(--hook-icon);
+  background-repeat: no-repeat;
+  opacity: 0.7;
 }
 .modal p {
   font-size: 0.85rem;
@@ -811,10 +991,21 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 .tutorial-title {
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 600;
   color: var(--black);
   margin-bottom: 8px;
+}
+.tutorial-title::before {
+  content: '';
+  display: inline-block;
+  width: 13px; height: 13px;
+  margin-right: 7px;
+  vertical-align: -1px;
+  background-image: var(--hook-icon);
+  background-repeat: no-repeat;
+  opacity: 0.7;
 }
 .tutorial-text {
   font-size: 0.85rem;
@@ -909,22 +1100,35 @@ input[type=range]::-webkit-slider-thumb {
    AI ASSISTANT PANEL
    ============================================================ */
 .ai-toggle-btn {
-  background: var(--black);
-  border: 1.5px solid var(--gold);
-  color: var(--gold);
+  background: linear-gradient(135deg, var(--gold), #ffd24d);
+  border: 2px solid var(--black);
+  color: var(--black);
   font-family: 'Outfit', sans-serif;
-  font-size: 0.65rem;
-  font-weight: 700;
+  font-size: 0.78rem;
+  font-weight: 800;
   letter-spacing: 0.08em;
-  padding: 5px 12px;
+  padding: 10px 16px;
   cursor: pointer;
   text-transform: uppercase;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  border-radius: 999px;
+  box-shadow: 0 4px 0 var(--black);
+  transform: translateY(0);
+  position: relative;
+  overflow: hidden;
 }
-.ai-toggle-btn:hover { background: var(--gold); color: var(--black); }
+.ai-toggle-btn:hover {
+  background: linear-gradient(135deg, #ffd24d, var(--gold));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--black);
+}
+.ai-toggle-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 0 var(--black);
+}
 
 .ai-drawer {
   position: fixed;
@@ -948,14 +1152,25 @@ input[type=range]::-webkit-slider-thumb {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  border-bottom: 2px solid var(--black);
   background: var(--bone);
   flex-shrink: 0;
+  position: relative;
+}
+.ai-drawer-header::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 4px;
+  background-color: var(--black);
+  background-image: var(--tendril-svg);
+  background-repeat: repeat-x;
+  background-size: 11px 4px;
 }
 .ai-drawer-title {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--black);
 }
@@ -1016,20 +1231,33 @@ input[type=range]::-webkit-slider-thumb {
   flex-direction: column;
   justify-content: center;
 }
+.funfact-card::after {
+  content: '';
+  position: absolute;
+  bottom: 6px; right: 6px;
+  width: 26px; height: 26px;
+  background-image: var(--corner-flourish);
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 0.25;
+  pointer-events: none;
+}
 .funfact-badge {
   position: absolute;
   top: -1px; left: -1px;
   background: var(--gold);
   border: 1.5px solid var(--black);
   color: var(--black);
-  font-size: 0.55rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  font-family: var(--font-display);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   padding: 2px 8px;
   text-transform: uppercase;
 }
 .funfact-text {
-  font-size: 0.92rem;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
   color: var(--black);
   line-height: 1.7;
   margin-top: 16px;
@@ -1069,6 +1297,7 @@ input[type=range]::-webkit-slider-thumb {
   text-transform: uppercase;
   transition: all 0.2s;
   flex-shrink: 0;
+  position: relative;
 }
 .funfact-new-btn:hover { background: #E6A600; box-shadow: 2px 2px 0 var(--black); transform: translate(-1px,-1px); }
 .funfact-new-btn:active { transform: translate(0,0); box-shadow: none; }
@@ -1128,6 +1357,29 @@ input[type=range]::-webkit-slider-thumb {
   margin-bottom: 4px;
   opacity: 0.6;
 }
+.chat-msg-text { white-space: pre-wrap; }
+
+/* Shared TTS Replay/Stop controls — used in chat bubbles and the Fun Fact card */
+.tts-controls {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.tts-btn {
+  background: transparent;
+  border: 1px solid var(--border-dark);
+  color: var(--black);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tts-btn:hover:not(:disabled) { border-color: var(--gold); background: var(--gold-dim); }
+.tts-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
 .chat-suggested {
   padding: 10px 14px;
@@ -1169,19 +1421,56 @@ input[type=range]::-webkit-slider-thumb {
   line-height: 1.5;
 }
 .chat-input-row textarea::placeholder { color: var(--muted); }
+.chat-voice-btn,
+.chat-stop-btn,
 .chat-send-btn {
-  background: var(--gold);
-  border: none;
-  border-left: 2px solid var(--black);
+  background: linear-gradient(135deg, var(--gold), #ffd24d);
+  border: 2px solid var(--black);
   color: var(--black);
   font-size: 1rem;
   width: 48px;
+  height: 48px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s ease;
   flex-shrink: 0;
+  border-radius: 14px;
+  box-shadow: 0 4px 0 var(--black);
+  transform: translateY(0);
 }
-.chat-send-btn:hover { background: #E6A600; }
-.chat-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.chat-stop-btn {
+  background: linear-gradient(135deg, var(--crimson), #b00000);
+  color: white;
+}
+.chat-voice-btn:hover,
+.chat-send-btn:hover {
+  background: linear-gradient(135deg, #ffd24d, var(--gold));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--black);
+}
+.chat-stop-btn:hover {
+  background: linear-gradient(135deg, #b00000, var(--crimson));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--black);
+}
+.chat-voice-btn:active,
+.chat-stop-btn:active,
+.chat-send-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 0 var(--black);
+}
+.chat-voice-btn.listening {
+  background: linear-gradient(135deg, var(--crimson), #d62828);
+  color: white;
+  animation: pulseVoiceBtn 1s infinite;
+}
+.chat-voice-btn:disabled,
+.chat-stop-btn:disabled,
+.chat-send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform:none; box-shadow:none; }
+
+@keyframes pulseVoiceBtn {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
 
 /* Backend-offline notice inside the drawer (hidden unless /api/chat is unreachable) */
 .ai-offline-banner {
@@ -1336,8 +1625,11 @@ input[type=range]::-webkit-slider-thumb {
     </div>
     <div class="chat-input-row">
       <textarea id="chatInput" placeholder="Ask about Orang Ulu culture..."></textarea>
+      <button class="chat-voice-btn" id="chatVoiceBtn" title="Speak your question">🎤</button>
+      <button class="chat-stop-btn" id="chatStopBtn" title="Stop listening">■</button>
       <button class="chat-send-btn" id="chatSendBtn">➤</button>
     </div>
+    <div class="chat-voice-status" id="chatVoiceStatus">Tap the mic and speak your question.</div>
   </div>
 
 </div>
