@@ -906,10 +906,15 @@ function speakText(text) {
 
   utter.onstart = () => { isSpeaking = true;  updateTtsButtons(); };
   utter.onend   = () => { isSpeaking = false; updateTtsButtons(); };
-  utter.onerror = () => {
+  utter.onerror = (event) => {
     isSpeaking = false;
     updateTtsButtons();
-    setVoiceStatus('Voice readout failed. See console for details.');
+    // 'interrupted'/'canceled' fire whenever our own cancel() call above
+    // cuts off a previous utterance (e.g. Replay clicked while something
+    // is already playing) — that's expected behavior, not a failure.
+    if (event.error === 'interrupted' || event.error === 'canceled') return;
+    console.error('[tts] speechSynthesis error:', event.error);
+    setVoiceStatus('Voice readout failed: ' + event.error);
   };
 
   window.speechSynthesis.speak(utter);
@@ -962,9 +967,11 @@ async function ensureMicrophoneAccess() {
     // caused SpeechRecognition's own mic request to conflict on some
     // browsers/drivers ("microphone is busy" even on first use).
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    console.log('[voice] getUserMedia succeeded — permission granted');
     stream.getTracks().forEach(track => track.stop());
     return true;
   } catch (error) {
+    console.log('[voice] getUserMedia failed —', error.name, error.message);
     let message = 'Microphone permission was denied.';
     if (error.name === 'NotAllowedError') {
       message = 'Please allow microphone access for this site.';
@@ -990,12 +997,16 @@ function fallbackVoiceInput() {
 }
 
 async function toggleVoiceInput() {
+  console.log('[voice] mic button clicked');
+
   if (!speechRecognition) {
+    console.log('[voice] no speechRecognition instance — falling back to text input');
     fallbackVoiceInput();
     return;
   }
 
   if (isListening) {
+    console.log('[voice] already listening — stopping');
     speechRecognition.stop();
     return;
   }
@@ -1003,7 +1014,9 @@ async function toggleVoiceInput() {
   lastVoiceTranscript = '';
   document.getElementById('chatInput').value = '';
 
+  console.log('[voice] requesting microphone permission...');
   const granted = await ensureMicrophoneAccess();
+  console.log('[voice] microphone permission granted:', granted);
   if (!granted) {
     fallbackVoiceInput();
     return;
@@ -1011,8 +1024,28 @@ async function toggleVoiceInput() {
 
   try {
     setVoiceStatus('Listening... speak now.');
+    console.log('[voice] starting speechRecognition.start()');
     speechRecognition.start();
-  } catch {
+
+    // Watchdog: a working SpeechRecognition engine always fires onstart
+    // (or onerror) within a moment of start(). If neither has fired
+    // after 3s, the API exists but isn't actually backed by a working
+    // speech service in this runtime (common in embedded webviews /
+    // in-editor previews) — start() silently no-ops instead of throwing.
+    window.setTimeout(() => {
+      if (!isListening) {
+        console.warn('[voice] WATCHDOG: 3s after start() with no onstart/onerror/onend event. ' +
+          'SpeechRecognition exists but never actually activated the microphone. ' +
+          'This is NOT a code bug in the click handler — the recognizer itself is silent. ' +
+          'Common cause: viewing this page inside an embedded preview/webview (e.g. a VS Code ' +
+          'preview panel) instead of a real Chrome/Edge browser tab, where the Web Speech API ' +
+          'has no working speech-recognition backend. Try opening the page in a standalone ' +
+          'Chrome or Edge window instead.');
+        setVoiceStatus('No response from the speech engine. Try opening this page in a real Chrome/Edge browser tab instead of an embedded preview.');
+      }
+    }, 3000);
+  } catch (err) {
+    console.log('[voice] speechRecognition.start() threw:', err);
     setVoiceStatus('Microphone is busy. Please try again.');
   }
 }
@@ -1032,22 +1065,34 @@ function setupVoiceControls() {
   // the listener was never attached in this branch, so the button
   // silently did nothing on every click after the first page load.
   if (!SpeechRecognitionCtor || !window.isSecureContext) {
+    console.log('[voice] setupVoiceControls: unsupported browser or insecure context — ' +
+      'SpeechRecognitionCtor: ' + !!SpeechRecognitionCtor + ', isSecureContext: ' + window.isSecureContext);
     voiceBtn.addEventListener('click', fallbackVoiceInput);
     fallbackVoiceInput();
     return;
   }
 
+  console.log('[voice] setupVoiceControls: SpeechRecognition supported, wiring up handlers');
   speechRecognition = new SpeechRecognitionCtor();
   speechRecognition.continuous = false;
   speechRecognition.interimResults = true;
   speechRecognition.lang = 'en-US';
 
   speechRecognition.onstart = () => {
+    console.log('[voice] onstart — mic is now capturing audio');
     isListening = true;
     voiceBtn.classList.add('listening');
     voiceBtn.title = 'Listening...';
     stopBtn.disabled = false;
     setVoiceStatus('Listening... speak now.');
+  };
+
+  speechRecognition.onaudiostart = () => {
+    console.log('[voice] onaudiostart — audio capture confirmed by the browser');
+  };
+
+  speechRecognition.onspeechstart = () => {
+    console.log('[voice] onspeechstart — speech detected in the audio stream');
   };
 
   speechRecognition.onresult = (event) => {
@@ -1062,6 +1107,8 @@ function setupVoiceControls() {
         interim += (interim ? ' ' : '') + transcript;
       }
     }
+
+    console.log('[voice] onresult — interim:', JSON.stringify(interim), 'final:', JSON.stringify(finalText));
 
     if (finalText) {
       lastVoiceTranscript = finalText;
@@ -1079,6 +1126,7 @@ function setupVoiceControls() {
   };
 
   speechRecognition.onerror = (event) => {
+    console.log('[voice] onerror —', event.error);
     isListening = false;
     voiceBtn.classList.remove('listening');
     stopBtn.disabled = true;
@@ -1089,6 +1137,7 @@ function setupVoiceControls() {
   };
 
   speechRecognition.onend = () => {
+    console.log('[voice] onend — recognition session ended. lastVoiceTranscript:', JSON.stringify(lastVoiceTranscript));
     isListening = false;
     voiceBtn.classList.remove('listening');
     stopBtn.disabled = true;
