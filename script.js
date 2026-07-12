@@ -854,12 +854,14 @@ function isLocalDev() {
   return h === 'localhost' || h === '127.0.0.1' || h === '::1' || h === '' || window.location.protocol === 'file:';
 }
 
-async function callAI(systemPrompt, messages) {
-  const BACKEND_URL = isLocalDev()
-    ? 'http://localhost:3000/api/chat'
-    : 'https://heritech.onrender.com/api/chat';
+function backendUrl(path) {
+  return isLocalDev()
+    ? `http://localhost:3000${path}`
+    : `https://heritech.onrender.com${path}`;
+}
 
-  const response = await fetch(BACKEND_URL, {
+async function callAI(systemPrompt, messages) {
+  const response = await fetch(backendUrl('/api/chat'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ system: systemPrompt, messages })
@@ -889,48 +891,87 @@ function showAiOffline(show) {
 //  stopSpeaking(). Each AI chat bubble AND the Fun Fact card get
 //  their own Replay/Stop pair (see buildTtsControls) so any past
 //  reply or fact can be re-read, not just the most recent one.
+//
+//  Voice is rendered server-side via OpenAI's gpt-4o-mini-tts
+//  (see /api/tts in server.js) rather than the browser's built-in
+//  speechSynthesis, which sounds noticeably more human and handles
+//  pronunciation of Orang Ulu / beadwork terms far more reliably.
 // ============================================================
 let isSpeaking = false;
+let currentAudio = null;
+let ttsAbortController = null;
+let ttsRequestId = 0;
 
 function ttsSupported() {
-  return 'speechSynthesis' in window;
+  return typeof Audio !== 'undefined';
 }
 
-function speakText(text) {
+async function speakText(text) {
   if (!text || !ttsSupported()) return;
-  window.speechSynthesis.cancel(); // interrupt whatever is currently playing
+  stopSpeaking(); // interrupt whatever is currently playing or loading
 
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = 'en-US';
-  utter.rate = 1.0;
+  const requestId = ++ttsRequestId;
+  ttsAbortController = new AbortController();
 
-  utter.onstart = () => { isSpeaking = true;  updateTtsButtons(); };
-  utter.onend   = () => { isSpeaking = false; updateTtsButtons(); };
-  utter.onerror = (event) => {
+  try {
+    const response = await fetch(backendUrl('/api/tts'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text }),
+      signal: ttsAbortController.signal
+    });
+
+    if (requestId !== ttsRequestId) return; // superseded by a newer speakText() call
+
+    if (!response.ok) {
+      let msg = `Voice server error (${response.status})`;
+      try {
+        const err = await response.json();
+        if (err.error) msg = err.error;
+      } catch {}
+      throw new Error(msg);
+    }
+
+    const blob = await response.blob();
+    if (requestId !== ttsRequestId) return; // superseded while the audio was downloading
+
+    const audio = new Audio(URL.createObjectURL(blob));
+    currentAudio = audio;
+
+    audio.onplay  = () => { isSpeaking = true;  updateTtsButtons(); };
+    audio.onended = () => { isSpeaking = false; updateTtsButtons(); URL.revokeObjectURL(audio.src); };
+    audio.onerror = () => {
+      isSpeaking = false;
+      updateTtsButtons();
+      setVoiceStatus('Voice readout failed to play.');
+    };
+
+    await audio.play();
+  } catch (error) {
+    if (error.name === 'AbortError') return; // expected — superseded by a newer speakText() call
+    console.error('[tts] error:', error);
     isSpeaking = false;
     updateTtsButtons();
-    // 'interrupted'/'canceled' fire whenever our own cancel() call above
-    // cuts off a previous utterance (e.g. Replay clicked while something
-    // is already playing) — that's expected behavior, not a failure.
-    if (event.error === 'interrupted' || event.error === 'canceled') return;
-    console.error('[tts] speechSynthesis error:', event.error);
-    setVoiceStatus('Voice readout failed: ' + event.error);
-  };
-
-  window.speechSynthesis.speak(utter);
+    setVoiceStatus('Voice readout failed: ' + error.message);
+  }
 }
 
 function stopSpeaking() {
-  if (!ttsSupported()) return;
-  window.speechSynthesis.cancel();
+  if (ttsAbortController) {
+    ttsAbortController.abort();
+    ttsAbortController = null;
+  }
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio = null;
+  }
   isSpeaking = false;
   updateTtsButtons();
 }
 
 // Keeps every Replay/Stop button — in chat bubbles AND the Fun Fact
-// card — in sync with playback state, since speechSynthesis only
-// ever plays one utterance at a time regardless of which one
-// triggered it.
+// card — in sync with playback state, since only one currentAudio
+// plays at a time regardless of which button triggered it.
 function updateTtsButtons() {
   document.querySelectorAll('.tts-replay').forEach(b => b.disabled = !ttsSupported());
   document.querySelectorAll('.tts-stop').forEach(b => b.disabled = !isSpeaking);

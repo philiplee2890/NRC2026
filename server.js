@@ -55,6 +55,37 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
+app.post('/api/tts', async (req, res) => {
+  try {
+    if (!apiKey || !openai) {
+      return res.status(500).json({
+        error: 'OPENAI_API_KEY is not set. Add it to your environment before starting the server.'
+      });
+    }
+
+    const input = String(req.body?.text || '').slice(0, 4096);
+    if (!input.trim()) {
+      return res.status(400).json({ error: 'No text provided to speak.' });
+    }
+
+    const speech = await openai.audio.speech.create({
+      model: 'gpt-4o-mini-tts',
+      voice: 'fable',
+      input,
+      instructions: 'Speak warmly and naturally, like a friendly cultural guide narrating a museum tour. Use relaxed, human pacing with clear pronunciation, especially for Orang Ulu and beadwork-related terms.'
+    });
+
+    const buffer = Buffer.from(await speech.arrayBuffer());
+    res.set('Content-Type', 'audio/mpeg');
+    res.send(buffer);
+  } catch (error) {
+    console.error('TTS error:', error);
+    res.status(500).json({
+      error: error?.message || 'Unexpected TTS error'
+    });
+  }
+});
+
 app.listen(port, () => {
   console.log(`HeriTech backend running on http://localhost:${port}`);
 });

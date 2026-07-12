@@ -13,7 +13,7 @@ A browser-based design studio for Orang Ulu beadwork motifs (Sarawak, Malaysia).
   - **Fun Facts** — on-demand facts about Orang Ulu culture, beadwork, and traditions, with history and replay.
   - **Ask Anything** — a chat assistant for questions about motifs, tribes, ceremonies, and the HeriTech robot itself.
 - **Voice input** — speak your chat questions using the browser's built-in speech recognition (Chrome/Edge; requires HTTPS or `localhost`).
-- **Text-to-speech** — AI replies (and fun facts) are read aloud automatically, with per-message Replay/Stop controls.
+- **Text-to-speech** — AI replies (and fun facts) are read aloud automatically in a natural, human-sounding voice (OpenAI `gpt-4o-mini-tts` via the backend), with per-message Replay/Stop controls.
 
 ## Tech stack
 
@@ -89,7 +89,7 @@ If you see an "AI server unreachable" banner, make sure `server.js` is running a
 HeriTech/
 ├── index.html      # markup + all styling
 ├── script.js        # app logic (canvas, library, G-code, robot link, AI guide)
-├── server.js         # Express backend — proxies /api/chat to OpenAI
+├── server.js         # Express backend — proxies /api/chat and /api/tts to OpenAI
 ├── package.json
 └── .env               # OPENAI_API_KEY (not committed)
 ```
@@ -97,5 +97,6 @@ HeriTech/
 ## Notes
 
 - Voice input and the microphone require a secure context (HTTPS or `localhost`) and a Chromium-based browser (Chrome/Edge) — the Web Speech API isn't available elsewhere. The app falls back gracefully to typed input everywhere else.
+- Read-aloud replies require the backend to be reachable and `OPENAI_API_KEY` to be set — unlike voice input, it isn't a browser feature, so it works in any browser but needs the server running.
 - The Heritage Library is stored in your browser's `localStorage`, so it's per-browser/per-device, not synced anywhere.
 - Decorative motifs in the UI are abstracted curvilinear line-work inspired by Orang Ulu carving and beadwork borders, not reproductions of specific figurative symbols (such as Aso/dragon-dog motifs), which carry rank and lineage significance in Kenyah/Kayan tradition.
