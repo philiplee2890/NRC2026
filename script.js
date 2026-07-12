@@ -857,7 +857,7 @@ function isLocalDev() {
 async function callAI(systemPrompt, messages) {
   const BACKEND_URL = isLocalDev()
     ? 'http://localhost:3000/api/chat'
-    : 'https://heri-tech.vercel.app/api/chat';
+    : 'https://heritech.onrender.com/api/chat';
 
   const response = await fetch(BACKEND_URL, {
     method: 'POST',
