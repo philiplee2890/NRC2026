@@ -70,7 +70,7 @@ app.post('/api/tts', async (req, res) => {
 
     const speech = await openai.audio.speech.create({
       model: 'gpt-4o-mini-tts',
-      voice: 'fable',
+      voice: 'shimmer',
       input,
       instructions: 'Speak warmly and naturally, like a friendly cultural guide narrating a museum tour. Use relaxed, human pacing with clear pronunciation, especially for Orang Ulu and beadwork-related terms.'
     });
