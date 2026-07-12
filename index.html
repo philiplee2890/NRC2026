@@ -36,9 +36,16 @@
      rather than a literal Aso or other figurative motif, since those
      carry specific rank/lineage meaning in Kenyah/Kayan tradition. */
   --tendril-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='6' viewBox='0 0 12 6'%3E%3Cpath d='M0,3 Q3,0 6,3 T12,3' fill='none' stroke='%23FFB800' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");
-  --motif-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cpath d='M10,50 C10,30 30,30 30,10 M50,10 C50,30 30,30 30,50' fill='none' stroke='%23000000' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  /* Background weave tile — a Paku (fern frond) curl, repeated at very
+     low opacity behind the panels. The one spot on the page where a
+     named, figurative motif is used purely decoratively; it's subtle
+     enough not to need attribution in the flow, but is explained in
+     the header motif strip below. */
+  --motif-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cpath d='M30,54 C30,40 30,30 30,20 C30,12 24,8 18,11 C13,13.5 15,19 21,18 C25,17 28,14 30,10' fill='none' stroke='%23000000' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
   --hook-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2,9 C2,4 6,2 9,4 C11,5.5 10,8 7,7.5 C5.5,7.2 5.5,5 7,5' fill='none' stroke='%238B0000' stroke-width='1.3' stroke-linecap='round'/%3E%3C/svg%3E");
   --corner-flourish: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M4,24 C4,14 14,14 14,4 M24,4 C24,14 14,14 14,24' fill='none' stroke='%231F6B63' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+  /* Mata (diamond/eye) chain — used for the new bottom border strip */
+  --mata-strip-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='6' viewBox='0 0 14 6'%3E%3Cpath d='M7,0.6 L12.5,3 L7,5.4 L1.5,3 Z' fill='none' stroke='%238B0000' stroke-width='1' /%3E%3C/svg%3E");
 }
 
 /* ============================================================
@@ -243,6 +250,17 @@ main {
   .send-btn {
     width: 100%;
   }
+
+  /* Decorative elements simplify away on very small screens:
+     background pattern off, bottom border strip flattens to a
+     plain rule. (Motif icon strip is hidden further down, after
+     its definition — CSS source order matters for this tie.) */
+  .left-panel::before,
+  .right-panel::before,
+  .canvas-area::before {
+    display: none;
+  }
+  .motif-border-bottom { background-image: none; }
 }
 
 /* ============================================================
@@ -289,7 +307,7 @@ main {
   inset: 0;
   background-image: var(--motif-tile);
   background-repeat: repeat;
-  opacity: 0.035;
+  opacity: 0.06;
   pointer-events: none;
   z-index: -1;
 }
@@ -1483,11 +1501,148 @@ input[type=range]::-webkit-slider-thumb {
   line-height: 1.5;
 }
 .ai-offline-banner.show { display: block; }
+
+/* ============================================================
+   CULTURAL MOTIF STRIP — header nav accent
+   Five stylized Orang Ulu motifs as small hoverable/focusable
+   icons, sitting beside the workflow-step indicator. Decorative
+   only — no effect on app behaviour.
+   ============================================================ */
+.header-center-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.motif-nav-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 14px;
+  border-left: 1.5px solid var(--border-dark);
+}
+.motif-icon-btn {
+  background: transparent;
+  border: none;
+  padding: 2px;
+  width: 20px;
+  height: 20px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.2s, transform 0.2s;
+}
+.motif-icon-btn svg { width: 100%; height: 100%; display: block; }
+.motif-icon-btn:hover,
+.motif-icon-btn:focus-visible {
+  color: var(--crimson);
+  transform: translateY(-1px);
+}
+.motif-icon-btn:focus-visible { outline: 1.5px solid var(--gold); outline-offset: 3px; }
+
+/* Shared tooltip card — one element, repositioned per icon */
+.motif-tooltip {
+  position: fixed;
+  z-index: 260;
+  width: 260px;
+  background: var(--bone);
+  border: 1.5px solid var(--crimson);
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.15);
+  padding: 12px 14px;
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.motif-tooltip.show { opacity: 1; transform: translateY(0); }
+.motif-tooltip-name {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--black);
+}
+.motif-tooltip-native {
+  font-size: 0.66rem;
+  font-style: italic;
+  color: var(--crimson);
+  margin-bottom: 6px;
+}
+.motif-tooltip-desc {
+  font-size: 0.74rem;
+  line-height: 1.55;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.motif-tooltip-groups span {
+  display: inline-block;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--black);
+  background: var(--gold-dim);
+  border: 1px solid var(--gold-med);
+  padding: 2px 7px;
+  margin: 0 4px 4px 0;
+}
+
+/* Bottom decorative border strip — Mata (diamond) chain, complements
+   the existing top accent-bar. Fixed + non-interactive so it can't
+   shift the app's fixed-viewport layout or block clicks. */
+.motif-border-bottom {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  height: 4px;
+  background-color: var(--black);
+  background-image: var(--mata-strip-svg);
+  background-repeat: repeat-x;
+  background-size: 14px 4px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .motif-nav-strip { display: none; }
+}
 </style>
 </head>
 <body>
 
 <div class="accent-bar"></div>
+
+<!-- ============ CULTURAL MOTIF SPRITE ============
+     Five clean, stylized line-art SVGs, reused via <use> in the
+     header motif strip. Abstracted for beadwork/carving-style
+     legibility at small sizes, not literal illustrations. -->
+<svg aria-hidden="true" focusable="false" style="position:absolute; width:0; height:0; overflow:hidden;">
+  <defs>
+    <symbol id="motif-aso" viewBox="0 0 40 40">
+      <path d="M20 6 C 26 6 28 11 24 13 C 30 13 32 19 26 20 C 32 21 32 27 26 27 C 28 30 25 34 20 33 C 15 34 12 30 14 27 C 8 27 8 21 14 20 C 8 19 10 13 16 13 C 12 11 14 6 20 6 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <circle cx="20" cy="14" r="1.6" fill="currentColor"/>
+      <path d="M20 17 C 22 19 22 22 20 23 C 18 22 18 19 20 17 Z" fill="currentColor" opacity="0.55"/>
+    </symbol>
+    <symbol id="motif-paku" viewBox="0 0 40 40">
+      <path d="M20 34 C20 24 20 18 20 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M20 12 C20 8 16 6 13 8 C11 9.5 12 13 16 12.5 C18 12.2 19.3 11 20 9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M20 18 C24 18 27 15 26 12 C25.3 10 22 10 21 12.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.85"/>
+      <path d="M20 24 C15 24 12 21 13.5 18 C14.5 16 17.5 16.5 18 19" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.7"/>
+      <path d="M20 30 C25 30 28 27 26.5 24 C25.5 22 22.5 22.5 22 25" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.55"/>
+    </symbol>
+    <symbol id="motif-hornbill" viewBox="0 0 40 40">
+      <path d="M8 22 L16 22 L16 15 L23 15 L30 10 L26 16 L23 18 L23 24 L18 30 L20 32 L14 32 L16 27 L12 27 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <circle cx="19" cy="18" r="1.2" fill="currentColor"/>
+    </symbol>
+    <symbol id="motif-mata" viewBox="0 0 40 40">
+      <path d="M20 6 L32 20 L20 34 L8 20 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M20 13 L26 20 L20 27 L14 20 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+      <circle cx="20" cy="20" r="2.1" fill="currentColor"/>
+    </symbol>
+    <symbol id="motif-ukir" viewBox="0 0 40 40">
+      <path d="M20 20 C20 13 27 13 27 20 C27 27 20 27 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M20 20 C20 27 13 27 13 20 C13 13 20 13 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      <circle cx="27" cy="20" r="1.3" fill="currentColor"/>
+      <circle cx="13" cy="20" r="1.3" fill="currentColor"/>
+    </symbol>
+  </defs>
+</svg>
 
 <!-- ============ ONBOARDING TUTORIAL POPUP ============ -->
 <div class="tutorial-overlay" id="tutorialOverlay">
@@ -1570,11 +1725,32 @@ input[type=range]::-webkit-slider-thumb {
       <p>Cultural Beadwork Automation System · Sarawak</p>
     </div>
   </div>
-  <div class="header-steps">
-    <div class="hstep active" id="step1"><span class="snum">1</span> Draw</div>
-    <div class="hstep" id="step2"><span class="snum">2</span> Save</div>
-    <div class="hstep" id="step3"><span class="snum">3</span> G-Code</div>
-    <div class="hstep" id="step4"><span class="snum">4</span> Send</div>
+  <div class="header-center-group">
+    <div class="header-steps">
+      <div class="hstep active" id="step1"><span class="snum">1</span> Draw</div>
+      <div class="hstep" id="step2"><span class="snum">2</span> Save</div>
+      <div class="hstep" id="step3"><span class="snum">3</span> G-Code</div>
+      <div class="hstep" id="step4"><span class="snum">4</span> Send</div>
+    </div>
+
+    <!-- Cultural motif strip — hover or focus an icon for its story -->
+    <nav class="motif-nav-strip" aria-label="Orang Ulu cultural motifs">
+      <button type="button" class="motif-icon-btn" data-motif="aso" aria-label="Aso — dog-dragon motif, a Kenyah and Kayan symbol of protection and bravery">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><use href="#motif-aso"></use></svg>
+      </button>
+      <button type="button" class="motif-icon-btn" data-motif="paku" aria-label="Paku — fern frond motif, symbolising growth and the rainforest">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><use href="#motif-paku"></use></svg>
+      </button>
+      <button type="button" class="motif-icon-btn" data-motif="hornbill" aria-label="Burung Enggang — hornbill motif, a sacred bird symbolising nobility">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><use href="#motif-hornbill"></use></svg>
+      </button>
+      <button type="button" class="motif-icon-btn" data-motif="mata" aria-label="Mata — eye and diamond motif, representing vision and protection">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><use href="#motif-mata"></use></svg>
+      </button>
+      <button type="button" class="motif-icon-btn" data-motif="ukir" aria-label="Ukir — interlocking spiral motif, symbolising continuity and ancestry">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><use href="#motif-ukir"></use></svg>
+      </button>
+    </nav>
   </div>
   <button class="ai-toggle-btn" id="aiToggleBtn">🤖 Ask AI</button>
 </header>
@@ -1767,6 +1943,12 @@ input[type=range]::-webkit-slider-thumb {
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- Bottom decorative border strip (Mata diamond chain) -->
+<div class="motif-border-bottom" aria-hidden="true"></div>
+
+<!-- Shared tooltip card for the header motif icons -->
+<div class="motif-tooltip" id="motifTooltip" role="tooltip"></div>
 
 <script src="./script.js" defer></script>
 </body>

@@ -1372,3 +1372,91 @@ function setupTutorial() {
 
 setupTutorial();
 init();
+
+/* ============================================================
+   CULTURAL MOTIF TOOLTIPS
+   Drives the five header motif icons: shows a shared tooltip
+   card on hover or keyboard focus. Vanilla JS, no dependencies.
+   ============================================================ */
+const MOTIF_INFO = {
+  aso: {
+    name: 'Aso',
+    native: 'Dog / Dragon Motif',
+    groups: ['Kenyah', 'Kayan'],
+    desc: "The Aso is one of the best-known figures in Kenyah and Kayan carving and beadwork — a mythical dog-dragon whose curling, interlocking form once marked the belongings of noble households. Carved onto longhouse posts and painted onto shields, it stood guard against unseen harm, and today it's still drawn as a mark of protection and courage."
+  },
+  paku: {
+    name: 'Paku',
+    native: 'Fern Frond Motif',
+    groups: ['Kenyah', 'Kayan', 'Kelabit', 'Penan'],
+    desc: "Named for the young fiddlehead fern that uncurls across the rainforest floor, Paku is one of the most widespread Orang Ulu motifs — simple enough for a first-time beader, versatile enough to fill any border. Its endless curling line stands for new growth and the forest's quiet persistence."
+  },
+  hornbill: {
+    name: 'Burung Enggang',
+    native: 'Hornbill Motif',
+    groups: ['Kenyah', 'Kayan'],
+    desc: "The hornbill is one of the most revered birds across Borneo's interior — seen as a messenger between the living and the ancestors, and once a mark of a great warrior's standing. Its casque and wings are rendered here in the angular, geometric style typical of beadwork rather than as a literal illustration."
+  },
+  mata: {
+    name: 'Mata',
+    native: 'Eye / Diamond Motif',
+    groups: ['Kenyah', 'Kayan', 'Kelabit'],
+    desc: "Mata means \"eye\" — a diamond-within-a-diamond that turns up in beadwork, tattoos, and basket weaving alike. It's worn and woven as a watchful symbol, believed to turn away misfortune while sharpening the wearer's own awareness."
+  },
+  ukir: {
+    name: 'Ukir',
+    native: 'Spiral Carving Motif',
+    groups: ['Kayan', 'Kenyah'],
+    desc: "Ukir refers broadly to the carved and beaded spiral work found throughout Orang Ulu material culture. These interlocking curves have no clear start or end — which is exactly the point. They're read as a line of ancestry and continuity, running from one generation into the next."
+  }
+};
+
+(function setupMotifTooltips() {
+  const tooltip = document.getElementById('motifTooltip');
+  const icons = document.querySelectorAll('.motif-icon-btn');
+  if (!tooltip || !icons.length) return;
+
+  function renderTooltip(key) {
+    const info = MOTIF_INFO[key];
+    if (!info) return;
+    tooltip.innerHTML =
+      '<div class="motif-tooltip-name">' + info.name + '</div>' +
+      '<div class="motif-tooltip-native">' + info.native + '</div>' +
+      '<div class="motif-tooltip-desc">' + info.desc + '</div>' +
+      '<div class="motif-tooltip-groups">' +
+        info.groups.map(function (g) { return '<span>' + g + '</span>'; }).join('') +
+      '</div>';
+  }
+
+  function positionTooltip(btn) {
+    const r = btn.getBoundingClientRect();
+    const tw = tooltip.offsetWidth || 260;
+    let left = r.left + r.width / 2 - tw / 2;
+    left = Math.max(10, Math.min(left, window.innerWidth - tw - 10));
+    tooltip.style.left = left + 'px';
+    tooltip.style.top = (r.bottom + 8) + 'px';
+  }
+
+  function showTooltip(btn) {
+    renderTooltip(btn.dataset.motif);
+    tooltip.classList.add('show');
+    positionTooltip(btn);
+  }
+
+  function hideTooltip() {
+    tooltip.classList.remove('show');
+  }
+
+  icons.forEach(function (btn) {
+    btn.addEventListener('mouseenter', function () { showTooltip(btn); });
+    btn.addEventListener('mouseleave', hideTooltip);
+    btn.addEventListener('focus', function () { showTooltip(btn); });
+    btn.addEventListener('blur', hideTooltip);
+    btn.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { hideTooltip(); btn.blur(); }
+    });
+  });
+
+  window.addEventListener('scroll', hideTooltip, true);
+  window.addEventListener('resize', hideTooltip);
+})();
