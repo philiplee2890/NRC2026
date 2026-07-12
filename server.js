@@ -68,11 +68,16 @@ app.post('/api/tts', async (req, res) => {
       return res.status(400).json({ error: 'No text provided to speak.' });
     }
 
+    const lang = req.body?.lang === 'ms' ? 'ms' : 'en';
+    const instructions = lang === 'ms'
+      ? 'Speak in Bahasa Malaysia (Malay) as a warm, friendly Malaysian woman narrating a museum tour — natural Malaysian pronunciation, intonation, and pacing, not a foreign accent.'
+      : 'Speak warmly and naturally, like a friendly cultural guide narrating a museum tour. Use relaxed, human pacing with clear pronunciation, especially for Orang Ulu and beadwork-related terms.';
+
     const speech = await openai.audio.speech.create({
       model: 'gpt-4o-mini-tts',
       voice: 'shimmer',
       input,
-      instructions: 'Speak warmly and naturally, like a friendly cultural guide narrating a museum tour. Use relaxed, human pacing with clear pronunciation, especially for Orang Ulu and beadwork-related terms.'
+      instructions
     });
 
     const buffer = Buffer.from(await speech.arrayBuffer());

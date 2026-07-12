@@ -14,6 +14,7 @@ A browser-based design studio for Orang Ulu beadwork motifs (Sarawak, Malaysia).
   - **Ask Anything** — a chat assistant for questions about motifs, tribes, ceremonies, and the HeriTech robot itself.
 - **Voice input** — speak your chat questions using the browser's built-in speech recognition (Chrome/Edge; requires HTTPS or `localhost`).
 - **Text-to-speech** — AI replies (and fun facts) are read aloud automatically in a natural, human-sounding voice (OpenAI `gpt-4o-mini-tts` via the backend), with per-message Replay/Stop controls.
+- **Bahasa Malaysia toggle** — an EN/BM switch in the AI drawer header makes the assistant answer (and speak) entirely in Malay, voiced as a Malaysian woman.
 
 ## Tech stack
 

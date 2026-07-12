@@ -1192,6 +1192,30 @@ input[type=range]::-webkit-slider-thumb {
   text-transform: uppercase;
   color: var(--black);
 }
+.ai-drawer-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ai-lang-toggle {
+  display: flex;
+  gap: 4px;
+}
+.ai-lang-btn {
+  padding: 5px 8px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  border: 1.5px solid var(--black);
+  background: transparent;
+  color: var(--black);
+  transition: all 0.2s;
+}
+.ai-lang-btn.active { background: var(--gold); border-color: var(--gold); }
+.ai-lang-btn:hover:not(.active) { background: var(--gold-dim); }
+
 .ai-drawer-close {
   width: 26px; height: 26px;
   background: transparent;
@@ -1760,7 +1784,13 @@ input[type=range]::-webkit-slider-thumb {
 
   <div class="ai-drawer-header">
     <div class="ai-drawer-title">🤖 HeriTech AI Guide</div>
-    <button class="ai-drawer-close" id="aiDrawerClose">✕</button>
+    <div class="ai-drawer-header-right">
+      <div class="ai-lang-toggle" id="aiLangToggle">
+        <button class="ai-lang-btn active" data-lang="en" title="Reply in English">EN</button>
+        <button class="ai-lang-btn" data-lang="ms" title="Reply in Bahasa Malaysia">BM</button>
+      </div>
+      <button class="ai-drawer-close" id="aiDrawerClose">✕</button>
+    </div>
   </div>
 
   <div class="ai-offline-banner" id="aiOfflineBanner">

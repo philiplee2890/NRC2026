@@ -229,6 +229,9 @@ function bindUIEvents() {
   document.getElementById('aiDrawerClose').addEventListener('click', toggleAiDrawer);
   document.getElementById('tabFunfact').addEventListener('click', () => switchAiTab('funfact'));
   document.getElementById('tabChat').addEventListener('click', () => switchAiTab('chat'));
+  document.querySelectorAll('.ai-lang-btn[data-lang]').forEach(btn => {
+    btn.addEventListener('click', () => setAiLanguage(btn.dataset.lang));
+  });
   document.getElementById('funfactBtn').addEventListener('click', loadFunFact);
   document.getElementById('chatSendBtn').addEventListener('click', sendChat);
   document.getElementById('chatInput').addEventListener('keydown', chatKeydown);
@@ -906,7 +909,7 @@ function ttsSupported() {
   return typeof Audio !== 'undefined';
 }
 
-async function speakText(text) {
+async function speakText(text, lang = aiLanguage) {
   if (!text || !ttsSupported()) return;
   stopSpeaking(); // interrupt whatever is currently playing or loading
 
@@ -917,7 +920,7 @@ async function speakText(text) {
     const response = await fetch(backendUrl('/api/tts'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text, lang }),
       signal: ttsAbortController.signal
     });
 
@@ -1209,6 +1212,25 @@ function switchAiTab(tab) {
   document.getElementById('panelChat').classList.toggle('active',    tab === 'chat');
 }
 
+// Applies to both the Fun Fact and Chat tabs — 'en' or 'ms' (Bahasa
+// Malaysia). Drives both the system prompt language (see
+// languageInstruction()) and the TTS accent/voice instructions
+// (see speakText() and /api/tts in server.js).
+let aiLanguage = 'en';
+
+function setAiLanguage(lang) {
+  aiLanguage = lang;
+  document.querySelectorAll('.ai-lang-btn[data-lang]').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === lang);
+  });
+}
+
+function languageInstruction() {
+  return aiLanguage === 'ms'
+    ? 'Respond entirely in natural, conversational Bahasa Malaysia (Malay), as spoken in Sarawak/Malaysia — not English. '
+    : '';
+}
+
 // ---- FUN FACT ----
 async function loadFunFact() {
   if (aiLoading) return;
@@ -1230,7 +1252,7 @@ async function loadFunFact() {
     const text = await callAI(
       'You are a cultural expert on the Orang Ulu people of Sarawak, Malaysia. ' +
       'Share fascinating, surprising, and specific fun facts about their culture, beadwork motifs, traditions, ceremonies, music, or history. ' +
-      'Keep each fact to 2–3 sentences. Be specific and vivid. ' + avoid,
+      'Keep each fact to 2–3 sentences. Be specific and vivid. ' + languageInstruction() + avoid,
       [{ role: 'user', content: 'Give me one fun fact about Orang Ulu culture. Start directly with the fact — no preamble.' }]
     );
     showAiOffline(false);
@@ -1312,7 +1334,10 @@ function appendChatMsg(role, text) {
 
 // Builds a Replay/Stop button pair wired to speak `text`. Shared by
 // chat bubbles (appendChatMsg) and the Fun Fact card (loadFunFact).
-function buildTtsControls(text) {
+// `lang` is captured at build time (defaults to the language active
+// when the reply arrived) so Replay still speaks a Malay reply in
+// Malay even if the user has since switched the toggle back to English.
+function buildTtsControls(text, lang = aiLanguage) {
   const controls = document.createElement('div');
   controls.className = 'tts-controls';
 
@@ -1320,7 +1345,7 @@ function buildTtsControls(text) {
   replayBtn.className = 'tts-btn tts-replay';
   replayBtn.textContent = '🔊 Replay';
   replayBtn.disabled = !ttsSupported();
-  replayBtn.addEventListener('click', () => speakText(text));
+  replayBtn.addEventListener('click', () => speakText(text, lang));
 
   const stopBtn = document.createElement('button');
   stopBtn.className = 'tts-btn tts-stop';
@@ -1368,7 +1393,8 @@ async function sendChat() {
       'You specialise in their beadwork traditions, motifs, ceremonies, music (especially the Sape), language, and cultural heritage. ' +
       'You also know about the HeriTech robot — an XY plotter that automates traditional beadwork production. ' +
       'Answer concisely (3–5 sentences max). Be warm, engaging, and culturally respectful. ' +
-      'If asked about non-Orang Ulu topics, gently redirect to cultural or heritage topics.',
+      'If asked about non-Orang Ulu topics, gently redirect to cultural or heritage topics. ' +
+      languageInstruction(),
       history
     );
     thinking.remove();
