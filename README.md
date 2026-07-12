@@ -6,6 +6,7 @@ A browser-based design studio for Orang Ulu beadwork motifs (Sarawak, Malaysia).
 
 - **Draw mode** — pen, straight line, and eraser tools with adjustable brush size, a 6-color palette, undo, clear, and mirror symmetry.
 - **Heritage Library** — save motifs locally (`localStorage`), reload or delete them, with live thumbnails.
+- **Import SVG** — upload an `.svg` file straight into the Library. Paths (including curves), lines, polylines, polygons, circles, ellipses, and rects — including ones inside transformed `<g>` groups — are sampled into strokes and fit to the 500×500 canvas, ready to edit, export, or turn into G-code like any hand-drawn motif.
 - **True vector SVG export** — download a pattern as a clean SVG, compatible with `svg2gcode`-style tools.
 - **G-code generation** — turns your strokes into Grbl-compatible G-code sized for a 350×350mm work area, with a live syntax-highlighted preview.
 - **Send to robot** — streams the generated G-code line-by-line to an ESP32 over a WebSocket (`ws://<esp32-ip>:81`).
@@ -98,6 +99,7 @@ HeriTech/
 ## Notes
 
 - Voice input and the microphone require a secure context (HTTPS or `localhost`) and a Chromium-based browser (Chrome/Edge) — the Web Speech API isn't available elsewhere. The app falls back gracefully to typed input everywhere else.
-- Read-aloud replies require the backend to be reachable and `OPENAI_API_KEY` to be set — unlike voice input, it isn't a browser feature, so it works in any browser but needs the server running.
+- Read-aloud replies require the backend to be reachable and `OPENAI_API_KEY` to be set — unlike voice input, it isn't a browser feature, so it needs the server running. Audio is streamed as Ogg/Opus for lower latency, which plays natively in Chrome/Edge/Firefox but not Safari.
+- Each AI reply (chat and Fun Facts) has an EN/BM switch next to its Replay/Stop controls — click the other language to translate and re-speak that specific message in place, no page refresh needed. Translations are cached per-message so flipping back and forth is instant after the first switch.
 - The Heritage Library is stored in your browser's `localStorage`, so it's per-browser/per-device, not synced anywhere.
 - Decorative motifs in the UI are abstracted curvilinear line-work inspired by Orang Ulu carving and beadwork borders, not reproductions of specific figurative symbols (such as Aso/dragon-dog motifs), which carry rank and lineage significance in Kenyah/Kayan tradition.

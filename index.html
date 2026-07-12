@@ -352,6 +352,28 @@ main {
 .heritage-library::-webkit-scrollbar { width: 3px; }
 .heritage-library::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 2px; }
 
+.lib-import-btn {
+  width: 100%;
+  background: transparent;
+  border: 1.5px dashed var(--border-dark);
+  color: var(--muted);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 9px 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 10px;
+}
+.lib-import-btn:hover {
+  border-color: var(--gold);
+  border-style: solid;
+  color: var(--black);
+  background: var(--gold-dim);
+}
+
 .lib-empty {
   display: flex;
   flex-direction: column;
@@ -1423,6 +1445,9 @@ input[type=range]::-webkit-slider-thumb {
 .tts-btn:hover:not(:disabled) { border-color: var(--gold); background: var(--gold-dim); }
 .tts-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
+.tts-lang-switch { display: flex; gap: 4px; margin-left: auto; }
+.tts-lang-btn.active { background: var(--gold); border-color: var(--gold); }
+
 .chat-suggested {
   padding: 10px 14px;
   border-top: 1px solid var(--border);
@@ -1852,6 +1877,8 @@ input[type=range]::-webkit-slider-thumb {
 
     <!-- LIBRARY PANEL -->
     <div id="libraryPanel" class="heritage-library">
+      <button class="lib-import-btn" id="importSvgBtn">⬆ Import SVG</button>
+      <input type="file" id="importSvgInput" accept=".svg,image/svg+xml" style="display:none;">
       <div id="libEmpty" class="lib-empty">
         <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
           <rect x="8" y="8" width="32" height="32" rx="2" stroke="#000" stroke-width="1.5"/>

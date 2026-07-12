@@ -121,7 +121,7 @@ function loadFromLibrary(id) {
 // ============================================================
 //  SAVE TO LIBRARY
 // ============================================================
-function saveToLibrary() {
+function saveToLibrary(suggestedName) {
   if (vectorStrokes.length === 0) {
     showToast('Draw something first before saving');
     return;
@@ -131,7 +131,7 @@ function saveToLibrary() {
   document.getElementById('modalTitle').textContent = 'Save to Heritage Library';
   document.getElementById('modalMsg').textContent = 'Give this motif a name:';
   document.getElementById('modalInput').style.display = 'block';
-  document.getElementById('modalInput').value = '';
+  document.getElementById('modalInput').value = suggestedName || '';
   document.getElementById('modalInput').placeholder = 'e.g. Aso Motif';
   document.getElementById('modalConfirm').textContent = 'Save';
   document.getElementById('modalConfirm').onclick = () => {
@@ -151,7 +151,123 @@ function saveToLibrary() {
     showToast(`"${name}" saved to Library ✓`);
   };
   document.getElementById('modalOverlay').classList.add('show');
-  setTimeout(() => document.getElementById('modalInput').focus(), 100);
+  setTimeout(() => document.getElementById('modalInput').select(), 100);
+}
+
+// ============================================================
+//  IMPORT SVG — loads an uploaded .svg file onto the canvas as
+//  vectorStrokes, then opens the same "Save to Library" modal
+//  saveToLibrary() already uses for hand-drawn motifs, pre-filled
+//  with the file's name.
+// ============================================================
+function importSvgFile(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    let strokes;
+    try {
+      strokes = parseSvgToStrokes(reader.result);
+    } catch (e) {
+      showToast('Could not import SVG: ' + e.message);
+      return;
+    }
+    if (!strokes.length) {
+      showToast('No drawable shapes found in that SVG');
+      return;
+    }
+
+    setMode('draw');
+    vectorStrokes = strokes;
+    redrawFromStrokes();
+    saveHistory();
+    resetGCode();
+    document.getElementById('canvasHint').style.opacity = '0';
+    document.getElementById('canvasInfo').textContent = `Imported · ${vectorStrokes.length} stroke(s)`;
+
+    const suggestedName = file.name.replace(/\.svg$/i, '') || 'Imported Motif';
+    showToast(`Imported "${file.name}" ✓ — name it to save`);
+    saveToLibrary(suggestedName);
+  };
+  reader.onerror = () => showToast('Could not read that file');
+  reader.readAsText(file);
+}
+
+// Converts an SVG file's drawable shapes (path, line, polyline,
+// polygon, circle, ellipse, rect) into vectorStrokes-format pen
+// strokes, fit and centered into the 500x500 working canvas.
+//
+// Rather than hand-parsing path/arc/bezier syntax, this leans on the
+// browser's native SVGGeometryElement API (getTotalLength /
+// getPointAtLength), which every one of those element types supports —
+// so curves of any kind are sampled correctly for free. The element
+// has to be attached to the live document for that API (and
+// getComputedStyle, for resolving CSS/style-block colors) to work,
+// hence the temporary off-screen append/remove.
+function parseSvgToStrokes(svgText) {
+  const doc = new DOMParser().parseFromString(svgText, 'image/svg+xml');
+  if (doc.querySelector('parsererror')) throw new Error('Invalid SVG file');
+
+  const root = doc.documentElement;
+  if (!root || root.nodeName.toLowerCase() !== 'svg') throw new Error('File is not an SVG');
+
+  let srcX = 0, srcY = 0, srcW, srcH;
+  const viewBox = (root.getAttribute('viewBox') || '').trim().split(/[\s,]+/).map(Number);
+  if (viewBox.length === 4 && viewBox.every(n => !isNaN(n))) {
+    [srcX, srcY, srcW, srcH] = viewBox;
+  } else {
+    srcW = parseFloat(root.getAttribute('width'))  || 500;
+    srcH = parseFloat(root.getAttribute('height')) || 500;
+  }
+  if (!srcW || !srcH) { srcW = 500; srcH = 500; }
+
+  const CANVAS = 500;
+  const fitScale = Math.min(CANVAS / srcW, CANVAS / srcH);
+  const offsetX  = (CANVAS - srcW * fitScale) / 2;
+  const offsetY  = (CANVAS - srcH * fitScale) / 2;
+  const mapPoint = (x, y) => ({
+    x: (x - srcX) * fitScale + offsetX,
+    y: (y - srcY) * fitScale + offsetY
+  });
+
+  const liveRoot = document.importNode(root, true);
+  liveRoot.style.position = 'absolute';
+  liveRoot.style.left = '-99999px';
+  liveRoot.style.top  = '-99999px';
+  document.body.appendChild(liveRoot);
+
+  const strokes = [];
+  try {
+    const shapes = Array.from(liveRoot.querySelectorAll('path, line, polyline, polygon, circle, ellipse, rect')).slice(0, 400);
+
+    shapes.forEach(el => {
+      if (typeof el.getTotalLength !== 'function') return;
+      let length;
+      try { length = el.getTotalLength(); } catch { return; }
+      if (!length || !isFinite(length)) return;
+
+      const ctm = el.getCTM();
+      const computed = window.getComputedStyle(el);
+      let color = el.getAttribute('stroke') || computed.stroke;
+      if (!color || color === 'none') color = el.getAttribute('fill') || computed.fill;
+      if (!color || color === 'none') color = '#000000';
+
+      const rawWidth = parseFloat(el.getAttribute('stroke-width') || computed.strokeWidth) || 2;
+      const size = Math.min(Math.max(rawWidth * fitScale, 1), 20);
+
+      const sampleCount = Math.min(300, Math.max(2, Math.round(length / 2)));
+      const points = [];
+      for (let i = 0; i <= sampleCount; i++) {
+        let pt = el.getPointAtLength((i / sampleCount) * length);
+        if (ctm) pt = pt.matrixTransform(ctm);
+        points.push(mapPoint(pt.x, pt.y));
+      }
+
+      strokes.push({ color, size, points, tool: 'pen' });
+    });
+  } finally {
+    document.body.removeChild(liveRoot);
+  }
+
+  return strokes;
 }
 
 // Enter key confirms modal
@@ -209,9 +325,19 @@ function bindUIEvents() {
   // Canvas toolbar
   document.getElementById('zoomInBtn').addEventListener('click', zoomIn);
   document.getElementById('zoomOutBtn').addEventListener('click', zoomOut);
-  document.getElementById('saveToLibraryBtn').addEventListener('click', saveToLibrary);
+  document.getElementById('saveToLibraryBtn').addEventListener('click', () => saveToLibrary());
   document.getElementById('exportSvgBtn').addEventListener('click', exportSVG);
   document.getElementById('resetBtn').addEventListener('click', confirmClear);
+
+  // Import SVG into the Heritage Library
+  document.getElementById('importSvgBtn').addEventListener('click', () => {
+    document.getElementById('importSvgInput').click();
+  });
+  document.getElementById('importSvgInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    e.target.value = ''; // reset so importing the same file again still fires 'change'
+    if (file) importSvgFile(file);
+  });
 
   // G-code panel
   document.getElementById('copyGcodeBtn').addEventListener('click', copyGCode);
@@ -1293,7 +1419,7 @@ function renderFunfactCard(text) {
   body.textContent = text;
   card.appendChild(body);
 
-  card.appendChild(buildTtsControls(text));
+  card.appendChild(buildTtsControls(text, aiLanguage, body));
 }
 
 function renderFunfactHistory() {
@@ -1324,7 +1450,7 @@ function appendChatMsg(role, text) {
   // Only finished AI replies get playback controls — user bubbles and
   // the "thinking…" placeholder don't need them.
   if (role === 'ai' && text) {
-    div.appendChild(buildTtsControls(text));
+    div.appendChild(buildTtsControls(text, aiLanguage, body));
   }
 
   box.appendChild(div);
@@ -1332,20 +1458,50 @@ function appendChatMsg(role, text) {
   return div;
 }
 
-// Builds a Replay/Stop button pair wired to speak `text`. Shared by
-// chat bubbles (appendChatMsg) and the Fun Fact card (loadFunFact).
-// `lang` is captured at build time (defaults to the language active
-// when the reply arrived) so Replay still speaks a Malay reply in
-// Malay even if the user has since switched the toggle back to English.
-function buildTtsControls(text, lang = aiLanguage) {
+// Translates `text` into 'en' or 'ms' via the lightweight /api/translate
+// endpoint (kept separate from /api/chat so switching a message's
+// language doesn't re-run the whole cultural-guide persona/prompt).
+async function translateText(text, targetLang) {
+  const response = await fetch(backendUrl('/api/translate'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text, target: targetLang })
+  });
+
+  if (!response.ok) {
+    let msg = `Translate error (${response.status})`;
+    try {
+      const err = await response.json();
+      if (err.error) msg = err.error;
+    } catch {}
+    throw new Error(msg);
+  }
+
+  const data = await response.json();
+  return data.text || text;
+}
+
+// Builds Replay/Stop + a per-message EN/BM switch wired to speak/show
+// `text`. Shared by chat bubbles (appendChatMsg) and the Fun Fact card
+// (loadFunFact). `lang` is the language `text` is already written in.
+//
+// When `textEl` is given, the EN/BM buttons let a single message be
+// switched to the other language on the spot: the text is translated
+// via /api/translate (cached per-message so flipping back and forth
+// doesn't re-translate), textEl's content is swapped, and the result
+// is spoken immediately — no page refresh or new AI reply needed.
+function buildTtsControls(text, lang = aiLanguage, textEl = null) {
   const controls = document.createElement('div');
   controls.className = 'tts-controls';
+
+  const cache = { [lang]: text };
+  let currentLang = lang;
 
   const replayBtn = document.createElement('button');
   replayBtn.className = 'tts-btn tts-replay';
   replayBtn.textContent = '🔊 Replay';
   replayBtn.disabled = !ttsSupported();
-  replayBtn.addEventListener('click', () => speakText(text, lang));
+  replayBtn.addEventListener('click', () => speakText(cache[currentLang], currentLang));
 
   const stopBtn = document.createElement('button');
   stopBtn.className = 'tts-btn tts-stop';
@@ -1355,6 +1511,54 @@ function buildTtsControls(text, lang = aiLanguage) {
 
   controls.appendChild(replayBtn);
   controls.appendChild(stopBtn);
+
+  if (textEl) {
+    let enBtn, bmBtn;
+
+    const selectLang = async (code) => {
+      if (code === currentLang) { speakText(cache[currentLang], currentLang); return; }
+
+      if (!cache[code]) {
+        enBtn.disabled = true;
+        bmBtn.disabled = true;
+        try {
+          cache[code] = await translateText(cache[currentLang], code);
+        } catch (e) {
+          setVoiceStatus('Translation failed: ' + e.message);
+          enBtn.disabled = false;
+          bmBtn.disabled = false;
+          return;
+        }
+        enBtn.disabled = false;
+        bmBtn.disabled = false;
+      }
+
+      currentLang = code;
+      textEl.textContent = cache[code];
+      enBtn.classList.toggle('active', code === 'en');
+      bmBtn.classList.toggle('active', code === 'ms');
+      speakText(cache[code], code);
+    };
+
+    enBtn = document.createElement('button');
+    enBtn.className = 'tts-btn tts-lang-btn' + (currentLang === 'en' ? ' active' : '');
+    enBtn.textContent = 'EN';
+    enBtn.title = 'Show and hear this message in English';
+    enBtn.addEventListener('click', () => selectLang('en'));
+
+    bmBtn = document.createElement('button');
+    bmBtn.className = 'tts-btn tts-lang-btn' + (currentLang === 'ms' ? ' active' : '');
+    bmBtn.textContent = 'BM';
+    bmBtn.title = 'Show and hear this message in Bahasa Malaysia';
+    bmBtn.addEventListener('click', () => selectLang('ms'));
+
+    const langSwitch = document.createElement('div');
+    langSwitch.className = 'tts-lang-switch';
+    langSwitch.appendChild(enBtn);
+    langSwitch.appendChild(bmBtn);
+    controls.appendChild(langSwitch);
+  }
+
   return controls;
 }
 
