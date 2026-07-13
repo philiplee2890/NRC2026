@@ -433,6 +433,24 @@ function getPos(e) {
 function startDraw(e) {
   if (currentMode !== 'draw') return;
   const [x,y] = getPos(e);
+
+  // Fill is a single click, not a drag — handle and bail out before the
+  // isDrawing/currentStroke drag machinery below engages.
+  if (currentTool === 'fill') {
+    saveHistory(); // pre-fill state, mirrors the drag tools' start-of-stroke saveHistory()
+    vectorStrokes.push({ tool:'fill', color:currentColor, points:[{x,y}] });
+    floodFillCtx(ctx, x, y, currentColor);
+    if (symmetryMode) {
+      const mx = canvas.width - x;
+      vectorStrokes.push({ tool:'fill', color:currentColor, points:[{x:mx, y}] });
+      floodFillCtx(ctx, mx, y, currentColor);
+    }
+    saveHistory(); // post-fill state
+    document.getElementById('canvasHint').style.opacity = '0';
+    document.getElementById('canvasInfo').textContent = `500 × 500 px · Draw mode · ${vectorStrokes.length} stroke(s)`;
+    return;
+  }
+
   isDrawing = true;
   lastX = x; lastY = y;
   lineStartX = x; lineStartY = y;
@@ -541,6 +559,12 @@ function drawStrokesOnCtx(c, strokes, scale=1) {
   c.fillRect(0, 0, c.canvas.width, c.canvas.height);
 
   strokes.forEach(stroke => {
+    if (stroke.tool === 'fill') {
+      if (stroke.points && stroke.points[0]) {
+        floodFillCtx(c, stroke.points[0].x * scale, stroke.points[0].y * scale, stroke.color);
+      }
+      return;
+    }
     if (!stroke.points || stroke.points.length < 2) return;
     c.beginPath();
 
@@ -574,15 +598,100 @@ function redrawFromStrokes() {
 }
 
 // ============================================================
+//  BUCKET FILL — pixel-level scanline flood fill, recorded as a
+//  {tool:'fill', color, points:[{x,y}]} entry in vectorStrokes so
+//  drawStrokesOnCtx() replays it (in order, alongside pen/line/eraser
+//  strokes) on every redraw — undo, thumbnails, and library reloads
+//  all go through drawStrokesOnCtx, so the fill has to be replayable
+//  from the seed point rather than a one-off pixel edit.
+// ============================================================
+let _colorProbeCtx = null;
+function colorToRgba(colorStr) {
+  if (!_colorProbeCtx) {
+    const t = document.createElement('canvas');
+    t.width = t.height = 1;
+    _colorProbeCtx = t.getContext('2d');
+  }
+  _colorProbeCtx.clearRect(0, 0, 1, 1);
+  _colorProbeCtx.fillStyle = colorStr;
+  _colorProbeCtx.fillRect(0, 0, 1, 1);
+  return _colorProbeCtx.getImageData(0, 0, 1, 1).data;
+}
+
+function floodFillCtx(c, seedX, seedY, fillColorStr) {
+  const w = c.canvas.width, h = c.canvas.height;
+  seedX = Math.round(seedX);
+  seedY = Math.round(seedY);
+  if (seedX < 0 || seedY < 0 || seedX >= w || seedY >= h) return;
+
+  const imgData = c.getImageData(0, 0, w, h);
+  const data = imgData.data;
+  const idx = (x, y) => (y * w + x) * 4;
+
+  const seedI  = idx(seedX, seedY);
+  const target = [data[seedI], data[seedI+1], data[seedI+2], data[seedI+3]];
+  const fill   = colorToRgba(fillColorStr);
+
+  // Tolerance absorbs the anti-aliased edge pixels around strokes so the
+  // fill doesn't stop one pixel short of (or leak past) a boundary.
+  const TOLERANCE = 40;
+  const matches = (i) =>
+    Math.abs(data[i]   - target[0]) <= TOLERANCE &&
+    Math.abs(data[i+1] - target[1]) <= TOLERANCE &&
+    Math.abs(data[i+2] - target[2]) <= TOLERANCE &&
+    Math.abs(data[i+3] - target[3]) <= TOLERANCE;
+
+  if (target[0] === fill[0] && target[1] === fill[1] && target[2] === fill[2] && target[3] === fill[3]) {
+    return; // already exactly this color — nothing to do
+  }
+
+  const setColor = (i) => {
+    data[i] = fill[0]; data[i+1] = fill[1]; data[i+2] = fill[2]; data[i+3] = fill[3];
+  };
+
+  // Scanline flood fill: fill whole horizontal spans at once and only
+  // queue one seed per contiguous span above/below, instead of pushing
+  // every individual pixel — much faster than a naive 4-way stack fill.
+  const stack = [[seedX, seedY]];
+  while (stack.length) {
+    const [sx, sy] = stack.pop();
+    if (!matches(idx(sx, sy))) continue;
+
+    let xl = sx;
+    while (xl > 0 && matches(idx(xl - 1, sy))) xl--;
+    let xr = sx;
+    while (xr < w - 1 && matches(idx(xr + 1, sy))) xr++;
+
+    let spanAbove = false, spanBelow = false;
+    for (let xi = xl; xi <= xr; xi++) {
+      setColor(idx(xi, sy));
+
+      if (sy > 0) {
+        const above = matches(idx(xi, sy - 1));
+        if (above && !spanAbove) { stack.push([xi, sy - 1]); spanAbove = true; }
+        else if (!above) spanAbove = false;
+      }
+      if (sy < h - 1) {
+        const below = matches(idx(xi, sy + 1));
+        if (below && !spanBelow) { stack.push([xi, sy + 1]); spanBelow = true; }
+        else if (!below) spanBelow = false;
+      }
+    }
+  }
+
+  c.putImageData(imgData, 0, 0);
+}
+
+// ============================================================
 //  TOOLS
 // ============================================================
 function setTool(t) {
   currentTool = t;
-  ['Pen','Line','Eraser'].forEach(id => {
+  ['Pen','Line','Eraser','Fill'].forEach(id => {
     document.getElementById('tool'+id).classList.remove('active');
   });
   document.getElementById('tool' + t.charAt(0).toUpperCase() + t.slice(1)).classList.add('active');
-  canvas.style.cursor = t === 'eraser' ? 'cell' : 'crosshair';
+  canvas.style.cursor = t === 'eraser' ? 'cell' : t === 'fill' ? 'pointer' : 'crosshair';
 }
 
 function setColor(c, el) {

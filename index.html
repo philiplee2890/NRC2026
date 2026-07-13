@@ -473,6 +473,7 @@ main {
 }
 .tool-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   align-items: center;
 }
@@ -1896,6 +1897,7 @@ input[type=range]::-webkit-slider-thumb {
         <button class="tool-btn active" id="toolPen" data-tool="pen">✏ Pen</button>
         <button class="tool-btn" id="toolLine" data-tool="line">╱ Line</button>
         <button class="tool-btn" id="toolEraser" data-tool="eraser">⬜ Erase</button>
+        <button class="tool-btn" id="toolFill" data-tool="fill" title="Click a closed area to fill it with the current color">🪣 Fill</button>
       </div>
       <div class="tool-row">
         <span class="tool-label">Size</span>

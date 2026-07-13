@@ -4,7 +4,7 @@ A browser-based design studio for Orang Ulu beadwork motifs (Sarawak, Malaysia).
 
 ## Features
 
-- **Draw mode** — pen, straight line, and eraser tools with adjustable brush size, a 6-color palette, undo, clear, and mirror symmetry.
+- **Draw mode** — pen, straight line, eraser, and bucket fill tools with adjustable brush size, a 6-color palette, undo, clear, and mirror symmetry.
 - **Heritage Library** — save motifs locally (`localStorage`), reload or delete them, with live thumbnails.
 - **Import SVG** — upload an `.svg` file straight into the Library. Paths (including curves), lines, polylines, polygons, circles, ellipses, and rects — including ones inside transformed `<g>` groups — are sampled into strokes and fit to the 500×500 canvas, ready to edit, export, or turn into G-code like any hand-drawn motif.
 - **True vector SVG export** — download a pattern as a clean SVG, compatible with `svg2gcode`-style tools.
