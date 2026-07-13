@@ -968,8 +968,9 @@ async function connectSerial() {
   btn.disabled = true;
   btn.textContent = 'Connecting…';
   try {
-    serialPort = await navigator.serial.requestPort();
-    await serialPort.open({ baudRate: 115200 });
+    const port = await navigator.serial.requestPort();
+    await port.open({ baudRate: 115200 });
+    serialPort = port;
     serialWriter = serialPort.writable.getWriter();
     startSerialReadLoop();
     btn.textContent = '✓ Arduino Connected';
@@ -979,11 +980,25 @@ async function connectSerial() {
     serialPort = null;
     serialWriter = null;
     btn.textContent = '🔌 Connect Arduino';
-    document.getElementById('sendStatus').textContent = 'Error: ' + err.message;
+    document.getElementById('sendStatus').textContent = describeSerialError(err);
+    showToast('Could not open that port');
   } finally {
     btn.disabled = false;
   }
 }
+
+function describeSerialError(err) {
+  const msg = (err && err.message) || String(err);
+  if (/failed to open serial port/i.test(msg)) {
+    return '⚠ Port is busy — close the Arduino IDE Serial Monitor (or any other app/tab using this port), then try again.';
+  }
+  return '⚠ ' + msg;
+}
+
+// Best-effort: release the port on reload/close so it isn't left locked for the next attempt.
+window.addEventListener('beforeunload', () => {
+  if (serialPort) serialPort.close().catch(() => {});
+});
 
 async function startSerialReadLoop() {
   const decoder = new TextDecoderStream();
