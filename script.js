@@ -317,6 +317,20 @@ function bindUIEvents() {
     swatch.addEventListener('click', () => setColor(swatch.dataset.color, swatch));
   });
 
+  // Custom color picker + hex input
+  const colorPicker = document.getElementById('colorPicker');
+  const hexInput = document.getElementById('hexInput');
+  colorPicker.addEventListener('input', () => setColor(colorPicker.value));
+  hexInput.addEventListener('change', () => {
+    let hex = hexInput.value.trim();
+    if (hex && hex[0] !== '#') hex = '#' + hex;
+    if (/^#[0-9a-fA-F]{6}$/.test(hex)) {
+      setColor(hex);
+    } else {
+      hexInput.value = currentColor.toUpperCase();
+    }
+  });
+
   // Undo / Clear / Mirror
   document.getElementById('undoBtn').addEventListener('click', undoCanvas);
   document.getElementById('clearBtn').addEventListener('click', clearCanvas);
@@ -697,7 +711,11 @@ function setTool(t) {
 function setColor(c, el) {
   currentColor = c;
   document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
-  el.classList.add('active');
+  if (el) el.classList.add('active');
+  const colorPicker = document.getElementById('colorPicker');
+  const hexInput = document.getElementById('hexInput');
+  if (colorPicker) colorPicker.value = c;
+  if (hexInput) hexInput.value = c.toUpperCase();
   if (currentTool === 'eraser') setTool('pen');
 }
 

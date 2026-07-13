@@ -542,6 +542,42 @@ input[type=range]::-webkit-slider-thumb {
 .swatch:hover { transform: scale(1.2); }
 .swatch.active { border-color: var(--black); transform: scale(1.15); }
 
+.color-picker-wrap {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 4px;
+  padding-left: 8px;
+  border-left: 1.5px solid var(--border-dark);
+}
+.color-picker-input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 2px solid var(--black);
+  border-radius: 50%;
+  cursor: pointer;
+  background: none;
+}
+.color-picker-input::-webkit-color-swatch-wrapper { padding: 0; border-radius: 50%; }
+.color-picker-input::-webkit-color-swatch { border: none; border-radius: 50%; }
+.color-picker-input::-moz-color-swatch { border: none; border-radius: 50%; }
+.hex-input {
+  width: 68px;
+  font-family: 'Outfit', monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--black);
+  background: var(--paper, #fff);
+  border: 1.5px solid var(--border-dark);
+  border-radius: 3px;
+  padding: 3px 5px;
+  text-transform: uppercase;
+}
+.hex-input:focus { outline: none; border-color: var(--gold); }
+
 .draw-action-row {
   display: flex;
   gap: 6px;
@@ -1913,6 +1949,10 @@ input[type=range]::-webkit-slider-thumb {
           <div class="swatch" style="background:#2A6B6E" data-color="#2A6B6E"></div>
           <div class="swatch" style="background:#5A3A8A" data-color="#5A3A8A"></div>
           <div class="swatch" style="background:#2A5A2A" data-color="#2A5A2A"></div>
+          <div class="color-picker-wrap">
+            <input type="color" id="colorPicker" class="color-picker-input" value="#000000" title="Pick any color">
+            <input type="text" id="hexInput" class="hex-input" value="#000000" maxlength="7" spellcheck="false" title="Hex code">
+          </div>
         </div>
       </div>
       <div class="draw-action-row">
