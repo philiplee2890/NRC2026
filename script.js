@@ -832,7 +832,7 @@ function generateGCode() {
     showToast('Draw a pattern first'); return;
   }
 
-  const fabricW = 350, fabricH = 350; // HeriTech work area mm
+  const fabricW = 250, fabricH = 250; // HeriTech work area mm (25x25cm)
   const scaleX  = fabricW / canvas.width;
   const scaleY  = fabricH / canvas.height;
 
