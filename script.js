@@ -835,6 +835,11 @@ function generateGCode() {
   const fabricW = 250, fabricH = 250; // HeriTech work area mm (25x25cm)
   const scaleX  = fabricW / canvas.width;
   const scaleY  = fabricH / canvas.height;
+  // Origin (X0 Y0) is the center of the paper, not the top-left corner —
+  // park the pen at the center of the sheet before sending, and G28 will
+  // latch that spot as (0,0).
+  const originX = fabricW / 2;
+  const originY = fabricH / 2;
 
   let lines = [];
   lines.push(`; ============================================`);
@@ -865,21 +870,21 @@ function generateGCode() {
       : stroke.points;
 
     // Move to start
-    const sx = (pts[0].x * scaleX).toFixed(2);
-    const sy = (pts[0].y * scaleY).toFixed(2);
+    const sx = (pts[0].x * scaleX - originX).toFixed(2);
+    const sy = (pts[0].y * scaleY - originY).toFixed(2);
     lines.push(`G0 X${sx} Y${sy}`);
     lines.push(`M3 S255    ; lower chalk`);
 
     // Draw through points (downsample pen strokes to reduce file size)
     const step = stroke.tool === 'pen' ? Math.max(1, Math.floor(pts.length/60)) : 1;
     for (let j = step; j < pts.length; j += step) {
-      const gx = (pts[j].x * scaleX).toFixed(2);
-      const gy = (pts[j].y * scaleY).toFixed(2);
+      const gx = (pts[j].x * scaleX - originX).toFixed(2);
+      const gy = (pts[j].y * scaleY - originY).toFixed(2);
       lines.push(`G1 X${gx} Y${gy}`);
     }
     // Ensure last point
-    const ex = (pts[pts.length-1].x * scaleX).toFixed(2);
-    const ey = (pts[pts.length-1].y * scaleY).toFixed(2);
+    const ex = (pts[pts.length-1].x * scaleX - originX).toFixed(2);
+    const ey = (pts[pts.length-1].y * scaleY - originY).toFixed(2);
     lines.push(`G1 X${ex} Y${ey}`);
     lines.push(`M5 S0      ; lift chalk`);
   });
