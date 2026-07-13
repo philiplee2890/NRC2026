@@ -807,6 +807,32 @@ input[type=range]::-webkit-slider-thumb {
   color: var(--muted);
   margin-bottom: 8px;
 }
+.send-mode-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.mode-tab {
+  flex: 1;
+  background: transparent;
+  border: 1.5px solid var(--border-dark);
+  color: var(--muted);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 6px 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.mode-tab:hover { border-color: var(--gold); }
+.mode-tab.active {
+  border-color: var(--gold);
+  color: var(--black);
+  background: rgba(0,0,0,0.05);
+}
+#serialConnectBtn { margin-bottom: 8px; }
 .esp-row {
   display: flex;
   gap: 6px;
@@ -2006,7 +2032,7 @@ input[type=range]::-webkit-slider-thumb {
         <span class="gcode-line-comment">; 1. Draw a motif on the canvas</span><br>
         <span class="gcode-line-comment">; 2. Save to Library</span><br>
         <span class="gcode-line-comment">; 3. Click Generate G-Code</span><br>
-        <span class="gcode-line-comment">; 4. Send to ESP32 HeriTech</span>
+        <span class="gcode-line-comment">; 4. Send to Arduino (USB) or ESP32 (Wi-Fi)</span>
       </div>
       <div class="gen-btn-row">
         <button class="gen-btn" id="generateGcodeBtn">▶ Generate G-Code</button>
@@ -2016,11 +2042,16 @@ input[type=range]::-webkit-slider-thumb {
     <!-- Send to Robot -->
     <div class="send-section">
       <div class="send-panel-label">🤖 Send to HeriTech</div>
-      <div class="esp-row">
+      <div class="send-mode-tabs">
+        <button class="mode-tab active" id="modeUsbBtn" type="button">🔌 USB (Arduino)</button>
+        <button class="mode-tab" id="modeWifiBtn" type="button">📶 Wi-Fi (ESP32)</button>
+      </div>
+      <div class="esp-row" id="wifiRow" style="display:none;">
         <input type="text" id="espIpInput" placeholder="ESP32 IP (e.g. 192.168.1.42)" value="192.168.1.42">
       </div>
+      <button class="send-btn" id="serialConnectBtn" type="button">🔌 Connect Arduino</button>
       <button class="send-btn" id="sendBtn" disabled>
-        ▶ Send to HeriTech Robot
+        ▶ Send to Arduino
       </button>
       <div class="send-status" id="sendStatus">Generate G-code first, then send.</div>
     </div>

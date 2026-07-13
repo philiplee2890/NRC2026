@@ -360,6 +360,9 @@ function bindUIEvents() {
 
   // Send to robot
   document.getElementById('sendBtn').addEventListener('click', sendToRobot);
+  document.getElementById('serialConnectBtn').addEventListener('click', connectSerial);
+  document.getElementById('modeUsbBtn').addEventListener('click', () => setSendMode('usb'));
+  document.getElementById('modeWifiBtn').addEventListener('click', () => setSendMode('wifi'));
 
   // Modal
   document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
@@ -909,7 +912,7 @@ function resetGCode() {
     <span class="gcode-line-comment">; G-code will appear here after generation.</span><br><br>
     <span class="gcode-line-comment">; 1. Draw or load a motif</span><br>
     <span class="gcode-line-comment">; 2. Click Generate G-Code</span><br>
-    <span class="gcode-line-comment">; 3. Send to ESP32 HeriTech</span>`;
+    <span class="gcode-line-comment">; 3. Send to Arduino (USB) or ESP32 (Wi-Fi)</span>`;
   document.getElementById('sendBtn').disabled = true;
   document.getElementById('sendStatus').textContent = 'Generate G-code first, then send.';
 }
@@ -930,12 +933,133 @@ function downloadGCode() {
 }
 
 // ============================================================
-//  SEND TO ROBOT (WebSocket to ESP32 Grbl)
+//  SEND TO ROBOT
+//  Two transports:
+//   - USB: Web Serial straight to an Arduino running Gcode-streamer.ino
+//     (line-by-line, wait for "ok" before sending the next line — same
+//     handshake Grbl uses, so this also works with a real Grbl board).
+//   - Wi-Fi: WebSocket to an ESP32 running a Grbl websocket bridge.
 // ============================================================
-async function sendToRobot() {
-  if (!gcodeReady) { showToast('Generate G-code first'); return; }
+let sendMode = 'usb'; // 'usb' | 'wifi'
+
+function setSendMode(mode) {
+  sendMode = mode;
+  document.getElementById('modeUsbBtn').classList.toggle('active', mode === 'usb');
+  document.getElementById('modeWifiBtn').classList.toggle('active', mode === 'wifi');
+  document.getElementById('wifiRow').style.display = mode === 'wifi' ? 'flex' : 'none';
+  document.getElementById('serialConnectBtn').style.display = mode === 'usb' ? 'block' : 'none';
+  document.getElementById('sendBtn').textContent = mode === 'usb' ? '▶ Send to Arduino' : '▶ Send to HeriTech Robot';
+}
+
+// --- USB (Web Serial) ---
+let serialPort         = null;
+let serialWriter        = null;
+let serialLineWaiters   = [];  // resolvers waiting on the next line from the board
+let serialLineBuffer    = '';
+
+async function connectSerial() {
+  if (!('serial' in navigator)) {
+    showToast('Web Serial not supported — use Chrome or Edge');
+    document.getElementById('sendStatus').textContent = "⚠ This browser can't talk to USB devices. Use Chrome or Edge on desktop.";
+    return;
+  }
+
+  const btn = document.getElementById('serialConnectBtn');
+  btn.disabled = true;
+  btn.textContent = 'Connecting…';
+  try {
+    serialPort = await navigator.serial.requestPort();
+    await serialPort.open({ baudRate: 115200 });
+    serialWriter = serialPort.writable.getWriter();
+    startSerialReadLoop();
+    btn.textContent = '✓ Arduino Connected';
+    document.getElementById('sendStatus').textContent = 'Arduino connected — generate G-code and send.';
+    showToast('Arduino connected ✓');
+  } catch (err) {
+    serialPort = null;
+    serialWriter = null;
+    btn.textContent = '🔌 Connect Arduino';
+    document.getElementById('sendStatus').textContent = 'Error: ' + err.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function startSerialReadLoop() {
+  const decoder = new TextDecoderStream();
+  const closed = serialPort.readable.pipeTo(decoder.writable);
+  const reader = decoder.readable.getReader();
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      if (!value) continue;
+      serialLineBuffer += value;
+      let idx;
+      while ((idx = serialLineBuffer.indexOf('\n')) >= 0) {
+        const line = serialLineBuffer.slice(0, idx).trim();
+        serialLineBuffer = serialLineBuffer.slice(idx + 1);
+        if (line && serialLineWaiters.length) serialLineWaiters.shift()(line);
+      }
+    }
+  } catch (err) {
+    console.error('Serial read loop ended:', err);
+  } finally {
+    reader.releaseLock();
+    closed.catch(() => {});
+    serialPort = null;
+    serialWriter = null;
+    document.getElementById('serialConnectBtn').textContent = '🔌 Connect Arduino';
+  }
+}
+
+function waitForSerialLine(timeoutMs = 15000) {
+  return new Promise((resolve, reject) => {
+    const onLine = (line) => { clearTimeout(timer); resolve(line); };
+    const timer = setTimeout(() => {
+      const idx = serialLineWaiters.indexOf(onLine);
+      if (idx >= 0) serialLineWaiters.splice(idx, 1);
+      reject(new Error('Arduino did not respond in time'));
+    }, timeoutMs);
+    serialLineWaiters.push(onLine);
+  });
+}
+
+async function sendToArduinoUSB() {
+  const btn = document.getElementById('sendBtn');
+  if (!serialPort || !serialWriter) {
+    showToast('Connect your Arduino first');
+    document.getElementById('sendStatus').textContent = 'Click "Connect Arduino" first, then send.';
+    return;
+  }
+
+  const gcodeLines = gcodeContent.split('\n').filter(l => l.trim() && !l.startsWith(';'));
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  setStep(4);
+
+  try {
+    for (let i = 0; i < gcodeLines.length; i++) {
+      await serialWriter.write(new TextEncoder().encode(gcodeLines[i] + '\n'));
+      document.getElementById('sendStatus').textContent = `Sending line ${i + 1}/${gcodeLines.length}…`;
+      await waitForSerialLine(); // wait for "ok" before the next line, matches Gcode-streamer.ino's handshake
+    }
+    document.getElementById('sendStatus').textContent = `✓ All ${gcodeLines.length} lines sent successfully`;
+    btn.textContent = '✓ Sent';
+    showToast('G-code sent to Arduino! ✓');
+  } catch (err) {
+    document.getElementById('sendStatus').textContent = '⚠ ' + err.message;
+    btn.textContent = '▶ Send to Arduino';
+    showToast('Send failed — check the USB connection');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// --- Wi-Fi (WebSocket to ESP32 Grbl) ---
+async function sendToRobotWifi() {
   const ip = document.getElementById('espIpInput').value.trim();
-  if (!ip)  { showToast('Enter ESP32 IP address'); return; }
+  if (!ip) { showToast('Enter ESP32 IP address'); return; }
 
   const btn = document.getElementById('sendBtn');
   btn.disabled = true;
@@ -977,6 +1101,12 @@ async function sendToRobot() {
     btn.textContent = '▶ Send to HeriTech Robot';
     btn.disabled = false;
   }
+}
+
+async function sendToRobot() {
+  if (!gcodeReady) { showToast('Generate G-code first'); return; }
+  if (sendMode === 'usb') await sendToArduinoUSB();
+  else await sendToRobotWifi();
 }
 
 // ============================================================
