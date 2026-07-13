@@ -832,7 +832,12 @@ function generateGCode() {
     showToast('Draw a pattern first'); return;
   }
 
-  const fabricW = 250, fabricH = 250; // HeriTech work area mm (25x25cm)
+  // HeriTech work area, mm. Y is capped to the rail's real travel: the rail
+  // is 200mm end-to-end, ~100mm from the centered origin in each direction,
+  // so fabricH is trimmed to 180mm (±90mm) to leave a safety margin against
+  // the carriage/pen-holder overhang. Re-measure and adjust if it still
+  // crashes at the edge, or if you confirm more clearance is safe.
+  const fabricW = 250, fabricH = 180;
   const scaleX  = fabricW / canvas.width;
   const scaleY  = fabricH / canvas.height;
   // Origin (X0 Y0) is the center of the paper, not the top-left corner —
