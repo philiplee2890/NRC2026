@@ -832,12 +832,13 @@ function generateGCode() {
     showToast('Draw a pattern first'); return;
   }
 
-  // HeriTech work area, mm. Y is capped to the rail's real travel: the rail
-  // is 200mm end-to-end, ~100mm from the centered origin in each direction,
-  // so fabricH is trimmed to 180mm (±90mm) to leave a safety margin against
-  // the carriage/pen-holder overhang. Re-measure and adjust if it still
-  // crashes at the edge, or if you confirm more clearance is safe.
-  const fabricW = 250, fabricH = 180;
+  // HeriTech work area, mm. Kept deliberately small (no limit switches, no
+  // real homing) so hand-centering error still can't reach the brackets:
+  // 100x100mm is only ±50mm from the centered origin, well inside the Y
+  // rail's ~100mm-each-way travel even if the pen isn't parked dead center.
+  // Once you're confident in your manual centering, raise this gradually
+  // and test a few empty-corner runs before trusting a full drawing.
+  const fabricW = 100, fabricH = 100;
   const scaleX  = fabricW / canvas.width;
   const scaleY  = fabricH / canvas.height;
   // Origin (X0 Y0) is the center of the paper, not the top-left corner —
