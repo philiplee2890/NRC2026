@@ -23,6 +23,35 @@ const canvas = document.getElementById('mainCanvas');
 const ctx    = canvas.getContext('2d');
 
 // ============================================================
+//  DRAFT AUTOSAVE — keeps the in-progress drawing in localStorage
+//  so it survives an accidental tab close/refresh even if the user
+//  never explicitly clicked "Save to Library". Separate key from
+//  the heritage library itself. Written from saveHistory() (called
+//  on every stroke/fill/clear) plus the couple of spots that mutate
+//  vectorStrokes without going through saveHistory().
+// ============================================================
+const DRAFT_KEY = 'ulu_draft_autosave';
+
+function saveDraft() {
+  try {
+    if (!vectorStrokes.length) {
+      localStorage.removeItem(DRAFT_KEY);
+      return;
+    }
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({
+      strokes: vectorStrokes,
+      savedAt: new Date().toISOString()
+    }));
+  } catch {}
+}
+
+function loadDraft() {
+  try {
+    return JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
+  } catch { return null; }
+}
+
+// ============================================================
 //  LIBRARY — localStorage persistence
 // ============================================================
 function loadLibrary() {
@@ -107,6 +136,7 @@ function loadFromLibrary(id) {
 
   // Redraw canvas
   redrawFromStrokes();
+  saveDraft();
 
   renderLibrarySidebar();
   document.getElementById('canvasHint').style.opacity = '0';
@@ -288,6 +318,22 @@ function init() {
   bindUIEvents();
   setupVoiceControls();
   guardTutorialImages();
+  restoreDraftIfAny();
+}
+
+// Recovers an in-progress drawing that was never explicitly saved to
+// the Library — e.g. the tab was closed or refreshed by accident.
+function restoreDraftIfAny() {
+  const draft = loadDraft();
+  if (!draft || !draft.strokes || !draft.strokes.length) return;
+
+  vectorStrokes = draft.strokes;
+  setMode('draw');
+  redrawFromStrokes();
+  saveHistory();
+  document.getElementById('canvasHint').style.opacity = '0';
+  document.getElementById('canvasInfo').textContent = `500 × 500 px · Draw mode · ${vectorStrokes.length} stroke(s) (restored)`;
+  showToast('Restored your unsaved drawing ✓');
 }
 
 // ============================================================
@@ -741,6 +787,7 @@ function saveHistory() {
   // Store a deep copy of vectorStrokes
   canvasHistory.push(JSON.parse(JSON.stringify(vectorStrokes)));
   if (canvasHistory.length > 40) canvasHistory.shift();
+  saveDraft();
 }
 
 function undoCanvas() {
@@ -748,6 +795,7 @@ function undoCanvas() {
   canvasHistory.pop(); // remove current state
   vectorStrokes = JSON.parse(JSON.stringify(canvasHistory[canvasHistory.length - 1]));
   redrawFromStrokes();
+  saveDraft();
   document.getElementById('canvasInfo').textContent = `500 × 500 px · Draw mode · ${vectorStrokes.length} stroke(s)`;
 }
 
