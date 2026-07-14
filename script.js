@@ -449,7 +449,9 @@ function setMode(mode) {
   currentMode = mode;
   document.getElementById('modeLibBtn').classList.toggle('active', mode === 'library');
   document.getElementById('modeDrawBtn').classList.toggle('active', mode === 'draw');
-  document.getElementById('libraryPanel').style.display   = mode === 'library' ? 'flex' : 'none';
+  const libPanel = document.getElementById('libraryPanel');
+  libPanel.style.display = mode === 'library' ? 'flex' : 'none';
+  libPanel.style.flexDirection = 'column';
 
   const dtp = document.getElementById('drawToolsPanel');
   dtp.style.display = mode === 'draw' ? 'flex' : 'none';
