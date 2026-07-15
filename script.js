@@ -902,9 +902,10 @@ function generateGCode() {
   // into the bracket.
   //
   // Output is rotated 90° CCW from the canvas: canvas Y (top=0, grows down)
-  // becomes G-code X, and canvas X becomes G-code Y. That's a plain axis
-  // swap with no extra flip needed, because the swap and the CCW turn
-  // cancel out the sign that a straight copy would've needed.
+  // becomes G-code X, and canvas X becomes G-code Y, mirrored (canvas.width
+  // - x) so the result is a true rotation instead of a reflection. A plain
+  // axis swap with no flip is a mirror image across the diagonal, not a
+  // rotation — that's what was producing mirrored output.
 
   let lines = [];
   lines.push(`; ============================================`);
@@ -936,7 +937,7 @@ function generateGCode() {
 
     // Move to start
     const sx = (pts[0].y * scaleY).toFixed(2);
-    const sy = (pts[0].x * scaleX).toFixed(2);
+    const sy = ((canvas.width - pts[0].x) * scaleX).toFixed(2);
     lines.push(`G0 X${sx} Y${sy}`);
     lines.push(`M3 S255    ; lower chalk`);
 
@@ -944,12 +945,12 @@ function generateGCode() {
     const step = stroke.tool === 'pen' ? Math.max(1, Math.floor(pts.length/60)) : 1;
     for (let j = step; j < pts.length; j += step) {
       const gx = (pts[j].y * scaleY).toFixed(2);
-      const gy = (pts[j].x * scaleX).toFixed(2);
+      const gy = ((canvas.width - pts[j].x) * scaleX).toFixed(2);
       lines.push(`G1 X${gx} Y${gy}`);
     }
     // Ensure last point
     const ex = (pts[pts.length-1].y * scaleY).toFixed(2);
-    const ey = (pts[pts.length-1].x * scaleX).toFixed(2);
+    const ey = ((canvas.width - pts[pts.length-1].x) * scaleX).toFixed(2);
     lines.push(`G1 X${ex} Y${ey}`);
     lines.push(`M5 S0      ; lift chalk`);
   });
