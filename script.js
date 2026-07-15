@@ -409,6 +409,15 @@ function bindUIEvents() {
   document.getElementById('serialConnectBtn').addEventListener('click', connectSerial);
   document.getElementById('modeUsbBtn').addEventListener('click', () => setSendMode('usb'));
   document.getElementById('modeWifiBtn').addEventListener('click', () => setSendMode('wifi'));
+  document.getElementById('modeBridgeBtn').addEventListener('click', () => setSendMode('bridge'));
+
+  // Devices without Web Serial (every iOS browser, since Apple requires
+  // them all to use WebKit, which doesn't implement it) can't use the USB
+  // tab at all — default them straight to the PC Bridge tab instead of a
+  // dead-end "not supported" button.
+  if (!('serial' in navigator)) {
+    setSendMode('bridge');
+  }
 
   // Modal
   document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
@@ -1011,15 +1020,19 @@ function downloadGCode() {
 //     handshake Grbl uses, so this also works with a real Grbl board).
 //   - Wi-Fi: WebSocket to an ESP32 running a Grbl websocket bridge.
 // ============================================================
-let sendMode = 'usb'; // 'usb' | 'wifi'
+let sendMode = 'usb'; // 'usb' | 'wifi' | 'bridge'
 
 function setSendMode(mode) {
   sendMode = mode;
   document.getElementById('modeUsbBtn').classList.toggle('active', mode === 'usb');
   document.getElementById('modeWifiBtn').classList.toggle('active', mode === 'wifi');
+  document.getElementById('modeBridgeBtn').classList.toggle('active', mode === 'bridge');
   document.getElementById('wifiRow').style.display = mode === 'wifi' ? 'flex' : 'none';
+  document.getElementById('bridgeHint').style.display = mode === 'bridge' ? 'block' : 'none';
   document.getElementById('serialConnectBtn').style.display = mode === 'usb' ? 'block' : 'none';
-  document.getElementById('sendBtn').textContent = mode === 'usb' ? '▶ Send to Arduino' : '▶ Send to HeriTech Robot';
+  document.getElementById('sendBtn').textContent = mode === 'usb' ? '▶ Send to Arduino'
+    : mode === 'bridge' ? '▶ Send via PC Bridge'
+    : '▶ Send to HeriTech Robot';
 }
 
 // --- USB (Web Serial) ---
@@ -1189,9 +1202,56 @@ async function sendToRobotWifi() {
   }
 }
 
+// --- PC Bridge (HTTP to the local server.js sitting next to the Arduino) ---
+// Unlike backendUrl() (used for the AI features, which fall back to the
+// hosted render.com backend), the bridge only exists on whichever machine
+// has the Arduino plugged in — so this always targets the page's own
+// origin. That means this device (e.g. an iPad) has to be loaded from that
+// PC's local address (e.g. http://192.168.1.42:3000), not the hosted site.
+function bridgeUrl(path) {
+  return window.location.origin + path;
+}
+
+async function sendToBridge() {
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  setStep(4);
+
+  try {
+    const startRes = await fetch(bridgeUrl('/api/gcode/send'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gcode: gcodeContent })
+    });
+    const startData = await startRes.json();
+    if (!startRes.ok) throw new Error(startData.error || 'Bridge server error');
+
+    while (true) {
+      await new Promise(r => setTimeout(r, 400));
+      const statusRes = await fetch(bridgeUrl('/api/gcode/status'));
+      const s = await statusRes.json();
+      if (s.error) throw new Error(s.error);
+      document.getElementById('sendStatus').textContent = s.inProgress
+        ? `Sending line ${s.sent}/${s.total}…`
+        : `✓ All ${s.total} lines sent successfully`;
+      if (!s.inProgress) break;
+    }
+    btn.textContent = '✓ Sent';
+    showToast('G-code sent via PC bridge! ✓');
+  } catch (err) {
+    document.getElementById('sendStatus').textContent = '⚠ ' + err.message;
+    btn.textContent = '▶ Send via PC Bridge';
+    showToast('Send failed — check the bridge server');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 async function sendToRobot() {
   if (!gcodeReady) { showToast('Generate G-code first'); return; }
   if (sendMode === 'usb') await sendToArduinoUSB();
+  else if (sendMode === 'bridge') await sendToBridge();
   else await sendToRobotWifi();
 }
 

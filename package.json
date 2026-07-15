@@ -7,9 +7,11 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "@serialport/parser-readline": "^13.0.0",
     "cors": "^2.8.0",
     "dotenv": "^16.4.2",
     "express": "^4.21.2",
-    "openai": "^4.53.2"
+    "openai": "^4.53.2",
+    "serialport": "^13.0.0"
   }
 }

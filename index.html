@@ -3,2083 +3,1075 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HeriTech Pattern Studio</title>
-<link rel="icon" type="image/svg+xml" href="logo-withbg.png">
+<title>HeriTech — Where Ancient Motifs Meet Modern Machines</title>
+<meta name="description" content="HeriTech is a robot plotter that draws the living motifs of the Orang Ulu peoples of Sarawak, Borneo — Kenyah, Kayan, Kelabit and Penan art, redrawn one stroke at a time.">
+
+<!-- Google Fonts: Playfair Display (cultural display serif) + Inter (modern sans) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
 <style>
 /* ============================================================
-   DESIGN TOKENS — Orang Ulu Beadwork Palette
-   Black / gold / crimson are the traditional manik (bead) colors;
-   teal is added as a secondary accent only for the new decorative
-   flourishes below — none of the functional colors (buttons,
-   active states, alerts) change meaning.
+   GLOBAL DESIGN SYSTEM
+   Deep black · rich gold · warm cream · mahogany
    ============================================================ */
 :root {
-  --bone:     #FFFDF2;   /* main background */
-  --gold:     #FFB800;   /* primary buttons, active states */
-  --black:    #000000;   /* borders, text, canvas outline */
-  --crimson:  #8B0000;   /* hover, links, secondary */
-  --teal:     #1F6B63;   /* decorative accent only — corner flourishes */
-  --gold-dim: rgba(255,184,0,0.12);
-  --gold-med: rgba(255,184,0,0.25);
-  --crimson-dim: rgba(139,0,0,0.08);
-  --panel:    #FDFAF0;   /* sidebar panels */
-  --muted:    #6B6454;
-  --border:   rgba(0,0,0,0.12);
-  --border-dark: rgba(0,0,0,0.25);
-
-  --font-display: 'Fraunces', Georgia, serif;
-
-  /* Abstracted curvilinear hook/tendril line-work, in the spirit of
-     Orang Ulu carving and beadwork borders — deliberately generic
-     rather than a literal Aso or other figurative motif, since those
-     carry specific rank/lineage meaning in Kenyah/Kayan tradition. */
-  --tendril-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='6' viewBox='0 0 12 6'%3E%3Cpath d='M0,3 Q3,0 6,3 T12,3' fill='none' stroke='%23FFB800' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");
-  /* Background weave tile — a Paku (fern frond) curl, repeated at very
-     low opacity behind the panels. The one spot on the page where a
-     named, figurative motif is used purely decoratively; it's subtle
-     enough not to need attribution in the flow, but is explained in
-     the header motif strip below. */
-  --motif-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cpath d='M30,54 C30,40 30,30 30,20 C30,12 24,8 18,11 C13,13.5 15,19 21,18 C25,17 28,14 30,10' fill='none' stroke='%23000000' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
-  --hook-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2,9 C2,4 6,2 9,4 C11,5.5 10,8 7,7.5 C5.5,7.2 5.5,5 7,5' fill='none' stroke='%238B0000' stroke-width='1.3' stroke-linecap='round'/%3E%3C/svg%3E");
-  --corner-flourish: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M4,24 C4,14 14,14 14,4 M24,4 C24,14 14,14 14,24' fill='none' stroke='%231F6B63' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
-  /* Mata (diamond/eye) chain — used for the new bottom border strip */
-  --mata-strip-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='6' viewBox='0 0 14 6'%3E%3Cpath d='M7,0.6 L12.5,3 L7,5.4 L1.5,3 Z' fill='none' stroke='%238B0000' stroke-width='1' /%3E%3C/svg%3E");
+  --ink:        #0a0a0a;   /* page black */
+  --ink-2:      #111111;   /* panel black */
+  --ink-3:      #1a1408;   /* black warmed toward gold */
+  --gold:       #C9A84C;   /* primary gold */
+  --gold-bright:#E4B84D;   /* highlight gold */
+  --gold-pale:  #F5D17A;   /* pale gold for glints */
+  --cream:      #F5ECD7;   /* body text on dark */
+  --cream-dim:  #E8D5B0;   /* secondary text */
+  --mahogany:   #3B1F0A;   /* deep brown accent */
+  --font-display: 'Playfair Display', 'Times New Roman', serif;
+  --font-body:    'Inter', system-ui, sans-serif;
+  --nav-h: 72px;
+  --ease-luxe: cubic-bezier(.22, .8, .3, 1);
 }
 
-/* ============================================================
-   BASE RESET
-   ============================================================ */
-*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--nav-h) + 12px);
+}
 
 body {
-  background: var(--bone);
-  color: var(--black);
-  font-family: 'Outfit', sans-serif;
-  font-weight: 400;
-  min-height: 100vh;
-  overflow: hidden;
-  -webkit-font-smoothing: antialiased;
+  background: var(--ink);
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-weight: 300;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* Handcrafted-paper grain: an inline SVG turbulence filter tiled across
+   the whole page at whisper opacity. Sits above the background colour but
+   below all content (z-index -1 on a fixed pseudo-element). */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: .05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+}
+
+::selection { background: var(--gold); color: var(--ink); }
+
+img, svg { max-width: 100%; }
+
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; color: var(--cream); }
+
+a { color: var(--gold-bright); }
+
+/* Shared layout helpers */
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+
+.eyebrow {
+  display: inline-block;
+  font-size: .78rem;
+  letter-spacing: .32em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 18px;
+}
+
+.section-title {
+  font-size: clamp(2rem, 4.2vw, 3rem);
+  line-height: 1.15;
+  margin-bottom: 22px;
+}
+.section-title em { color: var(--gold-bright); font-style: italic; }
+
+/* Scroll-reveal: elements start soft + low, IntersectionObserver flips .visible */
+.reveal { opacity: 0; transform: translateY(28px); transition: opacity .9s var(--ease-luxe), transform .9s var(--ease-luxe); }
+.reveal.visible { opacity: 1; transform: none; }
+
+/* ============================================================
+   MOTIF ANIMATIONS — CSS only, disabled for reduced-motion users
+   ============================================================ */
+@keyframes floatY   { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-16px); } }
+@keyframes slowSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes glowPulse {
+  0%,100% { filter: drop-shadow(0 0 6px rgba(201,168,76,.25)); }
+  50%     { filter: drop-shadow(0 0 18px rgba(228,184,77,.55)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
+  .reveal { opacity: 1; transform: none; }
 }
 
 /* ============================================================
-   TOP ACCENT BAR
+   NAVIGATION — transparent on load, dark gold-lined on scroll
    ============================================================ */
-.accent-bar {
-  height: 5px;
-  background-color: var(--black);
-  background-image: var(--tendril-svg);
-  background-repeat: repeat-x;
-  background-size: 12px 5px;
-}
-
-/* ============================================================
-   HEADER
-   ============================================================ */
-header {
+.nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--nav-h);
+  z-index: 100;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 12px 24px;
-  background: var(--bone);
-  height: 58px;
-  position: relative;
+  transition: background .5s var(--ease-luxe), border-color .5s, backdrop-filter .5s;
+  border-bottom: 1px solid transparent;
 }
-/* Echoes the top accent bar as an inset trim instead of a flat rule */
-header::after {
-  content: '';
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
-  height: 4px;
-  background-color: var(--black);
-  background-image: var(--tendril-svg);
-  background-repeat: repeat-x;
-  background-size: 11px 4px;
+.nav.scrolled {
+  background: rgba(10, 10, 10, .88);
+  backdrop-filter: blur(14px);
+  border-bottom-color: rgba(201, 168, 76, .28);
 }
-
-.logo {
+.nav-inner {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  gap: 34px;
+}
+.nav-logo {
   display: flex;
   align-items: center;
   gap: 12px;
+  text-decoration: none;
+  margin-right: auto;
 }
-.logo-icon {
-  width: 34px;
-  height: 34px;
-  flex-shrink: 0;
-}
-.logo-text h1 {
+.nav-logo svg { width: 34px; height: 34px; }
+.nav-logo-name {
   font-family: var(--font-display);
-  font-size: 0.98rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--black);
-  line-height: 1.2;
-}
-.logo-text p {
-  font-size: 0.68rem;
-  color: var(--muted);
-  font-weight: 300;
-  letter-spacing: 0.04em;
-}
-
-.header-steps {
-  display: flex;
-  gap: 4px;
-}
-.hstep {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 5px 12px;
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-  border: 1.5px solid transparent;
-  cursor: default;
-  transition: all 0.25s;
-}
-.hstep.active {
-  color: var(--black);
-  border-color: var(--gold);
-  background: var(--gold-dim);
-}
-.hstep .snum {
-  width: 18px;
-  height: 18px;
-  border: 1.5px solid currentColor;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.6rem;
+  font-size: 1.3rem;
   font-weight: 700;
+  color: var(--cream);
+  letter-spacing: .04em;
 }
+.nav-logo-name span { color: var(--gold-bright); }
 
-/* ============================================================
-   MAIN LAYOUT
-   ============================================================ */
-main {
-  display: grid;
-  grid-template-columns: 255px 1fr 275px;
-  height: calc(100vh - 63px);
-}
-
-@media (max-width: 980px) {
-  body { overflow: auto; }
-  main {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "top"
-      "middle"
-      "bottom";
-    height: auto;
-  }
-
-  .left-panel,
-  .right-panel,
-  .canvas-area {
-    min-height: auto;
-  }
-
-  .left-panel,
-  .right-panel {
-    border-right: none;
-    border-bottom: 2px solid var(--black);
-  }
-
-  .canvas-area {
-    order: 2;
-  }
-
-  .right-panel {
-    order: 3;
-  }
-}
-
-@media (max-width: 640px) {
-  header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    height: auto;
-    padding: 12px 14px;
-  }
-
-  .header-steps {
-    flex-wrap: wrap;
-  }
-
-  .ai-toggle-btn {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .ai-drawer {
-    width: 100vw;
-  }
-
-  .chat-input-row {
-    flex-wrap: wrap;
-  }
-
-  .chat-input-row textarea {
-    width: 100%;
-    min-height: 48px;
-    height: 48px;
-  }
-
-  .chat-voice-btn,
-  .chat-stop-btn,
-  .chat-send-btn {
-    width: 44px;
-    height: 44px;
-  }
-
-  .canvas-toolbar {
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-
-  .ctb-btn,
-  .gcode-btn,
-  .gen-btn,
-  .send-btn {
-    width: 100%;
-  }
-
-  /* Decorative elements simplify away on very small screens:
-     background pattern off, bottom border strip flattens to a
-     plain rule. (Motif icon strip is hidden further down, after
-     its definition — CSS source order matters for this tie.) */
-  .left-panel::before,
-  .right-panel::before,
-  .canvas-area::before {
-    display: none;
-  }
-  .motif-border-bottom { background-image: none; }
-}
-
-/* ============================================================
-   SHARED PANEL STYLES
-   ============================================================ */
-.panel-title {
-  font-family: var(--font-display);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
-  padding: 11px 16px 9px;
-  border-bottom: 1px solid var(--border-dark);
-}
-.panel-title::before {
-  content: '';
-  display: inline-block;
-  width: 12px; height: 12px;
-  margin-right: 6px;
-  vertical-align: -2px;
-  background-image: var(--hook-icon);
-  background-repeat: no-repeat;
-  opacity: 0.7;
-}
-
-/* ============================================================
-   LEFT PANEL
-   ============================================================ */
-.left-panel {
-  background: var(--panel);
-  border-right: 2px solid var(--black);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+.nav-links { display: flex; gap: 30px; }
+.nav-links a {
   position: relative;
+  color: var(--cream-dim);
+  text-decoration: none;
+  font-size: .92rem;
+  font-weight: 400;
+  letter-spacing: .06em;
+  padding: 6px 2px;
+  transition: color .3s;
 }
-/* Faint woven-mat texture — a nod to beadwork boards without competing with content */
-.left-panel::before,
-.right-panel::before,
-.canvas-area::before {
+/* Gold underline sweep on hover */
+.nav-links a::after {
   content: '';
   position: absolute;
-  inset: 0;
-  background-image: var(--motif-tile);
-  background-repeat: repeat;
-  opacity: 0.06;
-  pointer-events: none;
-  z-index: -1;
+  left: 0; bottom: 0;
+  width: 100%; height: 1.5px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-pale));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .35s var(--ease-luxe);
 }
+.nav-links a:hover, .nav-links a:focus-visible { color: var(--gold-pale); }
+.nav-links a:hover::after, .nav-links a:focus-visible::after { transform: scaleX(1); }
 
-/* Mode toggle */
-.mode-toggle {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--border);
-}
-.mode-btn {
-  background: transparent;
-  border: 1.5px solid var(--border-dark);
-  color: var(--muted);
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  padding: 7px 6px;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-transform: uppercase;
-}
-.mode-btn.active {
-  background: var(--gold);
-  border-color: var(--gold);
-  color: var(--black);
-}
-.mode-btn:not(.active):hover {
-  border-color: var(--crimson);
-  color: var(--crimson);
-}
-
-/* ---- Heritage Library (LEFT PANEL) ---- */
-.heritage-library {
-  flex: 1;
-  overflow-y: auto;
-  padding: 8px 12px 12px;
-}
-.heritage-library::-webkit-scrollbar { width: 3px; }
-.heritage-library::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 2px; }
-
-.lib-import-btn {
-  width: 100%;
-  background: transparent;
-  border: 1.5px dashed var(--border-dark);
-  color: var(--muted);
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 9px 6px;
-  cursor: pointer;
-  transition: all 0.2s;
-  margin-bottom: 10px;
-}
-.lib-import-btn:hover {
-  border-color: var(--gold);
-  border-style: solid;
-  color: var(--black);
-  background: var(--gold-dim);
-}
-
-.lib-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  height: 100%;
-  min-height: 120px;
-  color: var(--muted);
-  text-align: center;
-  padding: 20px;
-}
-.lib-empty svg { opacity: 0.3; }
-.lib-empty p { font-size: 0.75rem; line-height: 1.6; }
-
-.lib-section-label {
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  color: var(--muted);
-  text-transform: uppercase;
-  margin: 10px 0 6px;
-}
-.pattern-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 7px;
-  margin-bottom: 8px;
-}
-
-/* Saved library cards */
-.lib-card {
-  aspect-ratio: 1;
-  background: var(--bone);
-  border: 2px solid var(--border-dark);
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  overflow: hidden;
-  position: relative;
-}
-.lib-card:hover {
-  border-color: var(--gold);
-  box-shadow: 0 2px 10px rgba(255,184,0,0.2);
-}
-.lib-card.selected {
-  border-color: var(--gold);
-  background: var(--gold-dim);
-}
-.lib-card canvas {
-  width: 80%;
-  height: 80%;
-  display: block;
-}
-.lib-card-name {
-  font-size: 0.58rem;
-  font-weight: 600;
-  color: var(--black);
-  letter-spacing: 0.04em;
-  text-align: center;
-  padding: 2px 4px;
-  background: rgba(255,253,242,0.9);
-  width: 100%;
-  text-align: center;
-}
-.lib-card-del {
-  position: absolute;
-  top: 3px;
-  right: 3px;
-  width: 16px;
-  height: 16px;
-  background: var(--crimson);
-  color: white;
-  font-size: 0.55rem;
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  border-radius: 2px;
-}
-.lib-card:hover .lib-card-del { display: flex; }
-
-/* ---- Draw Tools (LEFT PANEL) ---- */
-#drawToolsPanel {
-  flex: 1;
-  padding: 10px 12px;
-  display: none;
-  flex-direction: column;
-  gap: 9px;
-  overflow-y: auto;
-}
-.tool-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
-}
-.tool-label {
-  font-size: 0.62rem;
-  font-weight: 600;
-  color: var(--muted);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  width: 50px;
-  flex-shrink: 0;
-}
-.tool-btn {
-  background: transparent;
-  border: 1.5px solid var(--border-dark);
-  color: var(--black);
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.68rem;
+.nav-cta {
+  font-family: var(--font-body);
+  font-size: .88rem;
   font-weight: 500;
-  padding: 5px 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.tool-btn.active {
-  background: var(--gold);
-  border-color: var(--gold);
-  color: var(--black);
-}
-.tool-btn:not(.active):hover {
-  border-color: var(--crimson);
-  color: var(--crimson);
-}
-input[type=range] {
-  flex: 1;
-  appearance: none;
-  -webkit-appearance: none;
-  height: 3px;
-  background: var(--border-dark);
-  border-radius: 2px;
-  outline: none;
-}
-input[type=range]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 13px;
-  height: 13px;
-  background: var(--gold);
-  border: 2px solid var(--black);
-  border-radius: 50%;
-  cursor: pointer;
-}
-.size-val {
-  font-family: 'Outfit', monospace;
-  font-size: 0.68rem;
-  font-weight: 600;
-  color: var(--black);
-  width: 22px;
-}
-.color-swatches { display: flex; gap: 5px; flex-wrap: wrap; }
-.swatch {
-  width: 20px;
-  height: 20px;
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition: transform 0.15s;
-}
-.swatch:hover { transform: scale(1.2); }
-.swatch.active { border-color: var(--black); transform: scale(1.15); }
-
-.color-picker-wrap {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-left: 4px;
-  padding-left: 8px;
-  border-left: 1.5px solid var(--border-dark);
-}
-.color-picker-input {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  border: 2px solid var(--black);
-  border-radius: 50%;
-  cursor: pointer;
-  background: none;
-}
-.color-picker-input::-webkit-color-swatch-wrapper { padding: 0; border-radius: 50%; }
-.color-picker-input::-webkit-color-swatch { border: none; border-radius: 50%; }
-.color-picker-input::-moz-color-swatch { border: none; border-radius: 50%; }
-.hex-input {
-  width: 68px;
-  font-family: 'Outfit', monospace;
-  font-size: 0.68rem;
-  font-weight: 600;
-  color: var(--black);
-  background: var(--paper, #fff);
-  border: 1.5px solid var(--border-dark);
-  border-radius: 3px;
-  padding: 3px 5px;
-  text-transform: uppercase;
-}
-.hex-input:focus { outline: none; border-color: var(--gold); }
-
-.draw-action-row {
-  display: flex;
-  gap: 6px;
-  margin-top: 6px;
-  flex-wrap: wrap;
-}
-
-/* ============================================================
-   CENTRE CANVAS AREA
-   ============================================================ */
-.canvas-area {
-  display: flex;
-  flex-direction: column;
-  background: #F5F2E8;
-  position: relative;
-}
-
-/* Toolbar */
-.canvas-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  background: var(--bone);
-  border-bottom: 1.5px solid var(--black);
-  flex-wrap: wrap;
-}
-.ctb-btn {
-  background: transparent;
-  border: 1.5px solid var(--border-dark);
-  color: var(--black);
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  padding: 5px 11px;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-.ctb-btn:hover {
-  border-color: var(--crimson);
-  color: var(--crimson);
-}
-.ctb-btn.primary {
-  background: var(--gold);
-  border-color: var(--gold);
-  color: var(--black);
-  font-weight: 700;
-}
-.ctb-btn.primary:hover {
-  background: #E6A600;
-  border-color: #E6A600;
-  color: var(--black);
-}
-.ctb-sep {
-  width: 1px;
-  height: 20px;
-  background: var(--border-dark);
-  margin: 0 3px;
-}
-.ctb-label {
-  margin-left: auto;
-  font-size: 0.6rem;
-  color: var(--muted);
-  letter-spacing: 0.06em;
-}
-
-/* Canvas wrap */
-.canvas-wrap {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  overflow: hidden;
-  position: relative;
-}
-#mainCanvas {
-  background: #FFFFFF;
-  cursor: crosshair;
-  border: 2px solid var(--black);
-  box-shadow: 4px 4px 0 rgba(0,0,0,0.15);
-  transform-origin: center center;
-}
-.canvas-hint {
-  position: absolute;
-  bottom: 28px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.72rem;
-  color: var(--muted);
-  pointer-events: none;
-  transition: opacity 0.4s;
-  white-space: nowrap;
-  background: rgba(255,253,242,0.85);
-  padding: 4px 10px;
-  border: 1px solid var(--border);
-}
-
-/* ============================================================
-   RIGHT PANEL
-   ============================================================ */
-.right-panel {
-  background: var(--panel);
-  border-left: 2px solid var(--black);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  position: relative;
-}
-
-/* G-Code section */
-.gcode-section {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 12px 14px;
-  overflow: hidden;
-  border-bottom: 1px solid var(--border-dark);
-}
-.gcode-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-.gcode-title {
-  font-family: var(--font-display);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-.gcode-actions { display: flex; gap: 5px; }
-.gcode-btn {
-  background: transparent;
-  border: 1.5px solid var(--border-dark);
-  color: var(--black);
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.58rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  padding: 4px 9px;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-transform: uppercase;
-}
-.gcode-btn:hover { border-color: var(--crimson); color: var(--crimson); }
-
-.gcode-box {
-  flex: 1;
-  background: #FAFAF5;
-  border: 1.5px solid var(--border-dark);
-  padding: 10px;
-  overflow-y: auto;
-  font-family: 'Courier New', monospace;
-  font-size: 0.6rem;
-  line-height: 1.7;
-  color: var(--muted);
-}
-.gcode-box::-webkit-scrollbar { width: 3px; }
-.gcode-box::-webkit-scrollbar-thumb { background: var(--muted); }
-.gcode-line-comment { color: #9A9080; }
-.gcode-line-move { color: #2A7A2A; font-weight: 600; }
-.gcode-line-cmd { color: var(--crimson); font-weight: 600; }
-
-/* Generate button */
-.gen-btn-row {
-  margin-top: 8px;
-}
-.gen-btn {
-  width: 100%;
-  background: var(--gold);
-  border: 2px solid var(--black);
-  color: var(--black);
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 9px;
-  cursor: pointer;
-  transition: all 0.2s;
-  position: relative;
-}
-.gen-btn:hover {
-  background: #E6A600;
-  box-shadow: 3px 3px 0 var(--black);
-  transform: translate(-1px, -1px);
-}
-.gen-btn:active {
-  transform: translate(0,0);
-  box-shadow: none;
-}
-
-/* Beaded trim — a row of tiny inset "beads" on the app's primary
-   call-to-action buttons, standing in for a literal stitched bead
-   edge without touching each button's existing gold identity. */
-.gen-btn::after,
-.funfact-new-btn::after,
-.ai-toggle-btn::after {
-  content: '';
-  position: absolute;
-  left: 10px; right: 10px; bottom: 3px;
-  height: 3px;
-  background-image: radial-gradient(circle, var(--black) 1.1px, transparent 1.3px);
-  background-repeat: repeat-x;
-  background-size: 8px 3px;
-  opacity: 0.45;
-  pointer-events: none;
-}
-
-/* Send section */
-.send-section {
-  padding: 12px 14px;
-  border-top: 1px solid var(--border-dark);
-}
-.send-panel-label {
-  font-family: var(--font-display);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 8px;
-}
-.send-mode-tabs {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-.mode-tab {
-  flex: 1;
-  background: transparent;
-  border: 1.5px solid var(--border-dark);
-  color: var(--muted);
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  padding: 6px 4px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.mode-tab:hover { border-color: var(--gold); }
-.mode-tab.active {
-  border-color: var(--gold);
-  color: var(--black);
-  background: rgba(0,0,0,0.05);
-}
-#serialConnectBtn { margin-bottom: 8px; }
-.esp-row {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-.esp-row input {
-  flex: 1;
-  background: var(--bone);
-  border: 1.5px solid var(--border-dark);
-  color: var(--black);
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.68rem;
-  padding: 6px 9px;
-  outline: none;
-  transition: border-color 0.2s;
-}
-.esp-row input:focus { border-color: var(--gold); }
-.esp-row input::placeholder { color: var(--muted); }
-.send-btn {
-  width: 100%;
-  background: transparent;
-  border: 2px solid var(--black);
-  color: var(--black);
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 9px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.send-btn:hover:not(:disabled) {
-  background: var(--crimson);
-  border-color: var(--crimson);
-  color: white;
-}
-.send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-.send-status {
-  margin-top: 6px;
-  font-size: 0.68rem;
-  text-align: center;
-  color: var(--muted);
-  min-height: 16px;
-}
-
-/* ============================================================
-   MODAL
-   ============================================================ */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.55);
-  z-index: 100;
-  display: none;
-  align-items: center;
-  justify-content: center;
-}
-.modal-overlay.show { display: flex; }
-.modal {
-  background: var(--bone);
-  border: 2px solid var(--black);
-  padding: 28px;
-  max-width: 400px;
-  width: 90%;
-  text-align: center;
-  box-shadow: 6px 6px 0 var(--black);
-  position: relative;
-  overflow: hidden;
-}
-.modal::after {
-  content: '';
-  position: absolute;
-  bottom: 6px; right: 6px;
-  width: 24px; height: 24px;
-  background-image: var(--corner-flourish);
-  background-repeat: no-repeat;
-  background-size: contain;
-  opacity: 0.3;
-  pointer-events: none;
-}
-.modal-icon { font-size: 2rem; margin-bottom: 10px; }
-.modal h2 {
-  font-family: var(--font-display);
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--black);
-  margin-bottom: 8px;
-  letter-spacing: 0.04em;
-}
-.modal h2::before {
-  content: '';
-  display: inline-block;
-  width: 12px; height: 12px;
-  margin-right: 6px;
-  vertical-align: -1px;
-  background-image: var(--hook-icon);
-  background-repeat: no-repeat;
-  opacity: 0.7;
-}
-.modal p {
-  font-size: 0.85rem;
-  color: var(--muted);
-  line-height: 1.6;
-  margin-bottom: 18px;
-}
-.modal input[type=text] {
-  width: 100%;
-  background: white;
-  border: 1.5px solid var(--border-dark);
-  color: var(--black);
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.85rem;
-  padding: 8px 10px;
-  outline: none;
-  margin-bottom: 16px;
-  text-align: center;
-}
-.modal input[type=text]:focus { border-color: var(--gold); }
-.modal-btns { display: flex; gap: 8px; justify-content: center; }
-.modal-btn {
-  background: transparent;
-  border: 1.5px solid var(--border-dark);
-  color: var(--black);
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  padding: 7px 16px;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-transform: uppercase;
-}
-.modal-btn:hover { border-color: var(--crimson); color: var(--crimson); }
-.modal-btn.primary {
-  background: var(--gold);
-  border-color: var(--gold);
-  color: var(--black);
-}
-.modal-btn.primary:hover { background: #E6A600; }
-
-/* ============================================================
-   TOAST
-   ============================================================ */
-.toast {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--black);
-  color: var(--bone);
-  padding: 9px 20px;
-  font-size: 0.78rem;
-  font-weight: 500;
-  z-index: 999;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s;
-  white-space: nowrap;
-  border-left: 4px solid var(--gold);
-}
-.toast.show { opacity: 1; }
-
-/* Scrollbar global */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 2px; }
-
-/* ============================================================
-   TUTORIAL POPUP
-   ============================================================ */
-.tutorial-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.55);
-  z-index: 200;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s;
-}
-.tutorial-overlay.show { opacity: 1; pointer-events: all; }
-
-.tutorial-modal {
-  width: min(520px, 90vw);
-  max-height: 86vh;
-  background: var(--bone);
-  border: 2px solid var(--black);
-  box-shadow: 6px 6px 0 var(--black);
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  padding: 18px 18px 60px;
-}
-
-.tutorial-close {
-  position: absolute;
-  top: 10px; right: 10px;
-  width: 26px; height: 26px;
-  background: transparent;
-  border: 1.5px solid var(--black);
-  color: var(--black);
-  font-size: 0.8rem;
-  cursor: pointer;
-  z-index: 5;
-  font-family: 'Outfit', sans-serif;
-}
-.tutorial-close:hover { background: var(--crimson); color: white; border-color: var(--crimson); }
-
-.tutorial-pages-wrapper { overflow: hidden; }
-.tutorial-pages-track {
-  display: flex;
-  transition: transform 0.45s cubic-bezier(.4,0,.2,1);
-}
-
-.tutorial-page {
-  flex: 0 0 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 24px 8px 0;
-}
-
-.tutorial-img-slot {
-  width: 100%;
-  aspect-ratio: 16/10;
-  border: 2px dashed var(--border-dark);
-  background: #FAFAF2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 18px;
-  overflow: hidden;
-}
-.tutorial-img-slot img { width: 100%; height: 100%; object-fit: cover; }
-
-.tutorial-video-slot {
-  width: 100%;
-  aspect-ratio: 16/9;
-  border: 2px dashed var(--border-dark);
-  background: #000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 18px;
-  overflow: hidden;
-}
-.tutorial-video-slot video,
-.tutorial-video-slot iframe { width: 100%; height: 100%; border: none; }
-
-.slot-label {
-  font-size: 0.7rem;
-  color: var(--muted);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.tutorial-title {
-  font-family: var(--font-display);
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: var(--black);
-  margin-bottom: 8px;
-}
-.tutorial-title::before {
-  content: '';
-  display: inline-block;
-  width: 13px; height: 13px;
-  margin-right: 7px;
-  vertical-align: -1px;
-  background-image: var(--hook-icon);
-  background-repeat: no-repeat;
-  opacity: 0.7;
-}
-.tutorial-text {
-  font-size: 0.85rem;
-  color: var(--muted);
-  line-height: 1.6;
-  max-width: 380px;
-}
-
-.tutorial-footer {
-  position: absolute;
-  bottom: 14px;
-  left: 18px; right: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.tutorial-arrow {
-  width: 32px; height: 32px;
-  background: transparent;
-  border: 1.5px solid var(--black);
-  color: var(--black);
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: 'Outfit', sans-serif;
-}
-.tutorial-arrow:hover { background: var(--gold); border-color: var(--gold); }
-.tutorial-arrow:disabled { opacity: 0.3; cursor: default; }
-.tutorial-arrow:disabled:hover { background: transparent; border-color: var(--black); }
-.tutorial-arrow.hidden { display: none; }
-
-.tutorial-dots { display: flex; gap: 6px; }
-.t-dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: rgba(0,0,0,0.18);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.t-dot.active { background: var(--gold); transform: scale(1.3); }
-
-.tutorial-skip {
-  position: absolute;
-  bottom: 14px;
-  right: 18px;
-  background: var(--gold);
-  border: 1.5px solid var(--black);
-  color: var(--black);
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  padding: 5px 12px;
-  cursor: pointer;
-  text-transform: uppercase;
-  font-family: 'Outfit', sans-serif;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(6px);
-  transition: opacity 0.3s, transform 0.3s;
-}
-.tutorial-skip.show {
-  opacity: 1;
-  pointer-events: all;
-  transform: translateY(0);
-}
-.tutorial-skip:hover { background: #E6A600; }
-
-/* Reopen button — sits at bottom of the left panel */
-.tutorial-reopen {
-  position: absolute;
-  bottom: 14px;
-  right: 14px;
-  width: 34px; height: 34px;
-  border-radius: 50%;
-  background: var(--gold);
-  border: 2px solid var(--black);
-  color: var(--black);
-  font-weight: 700;
-  font-size: 0.9rem;
-  cursor: pointer;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s;
-  z-index: 20;
-  font-family: 'Outfit', sans-serif;
-}
-.tutorial-reopen.show { opacity: 1; pointer-events: all; }
-.tutorial-reopen:hover { background: #E6A600; }
-
-/* ============================================================
-   AI ASSISTANT PANEL
-   ============================================================ */
-.ai-toggle-btn {
-  background: linear-gradient(135deg, var(--gold), #ffd24d);
-  border: 2px solid var(--black);
-  color: var(--black);
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  padding: 10px 16px;
-  cursor: pointer;
-  text-transform: uppercase;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  letter-spacing: .08em;
+  color: var(--ink);
+  background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+  padding: 10px 22px;
   border-radius: 999px;
-  box-shadow: 0 4px 0 var(--black);
-  transform: translateY(0);
-  position: relative;
-  overflow: hidden;
+  text-decoration: none;
+  transition: box-shadow .35s, transform .35s;
 }
-.ai-toggle-btn:hover {
-  background: linear-gradient(135deg, #ffd24d, var(--gold));
-  transform: translateY(-2px);
-  box-shadow: 0 6px 0 var(--black);
-}
-.ai-toggle-btn:active {
-  transform: translateY(1px);
-  box-shadow: 0 2px 0 var(--black);
-}
-
-.ai-drawer {
-  position: fixed;
-  top: 0; right: 0;
-  width: 380px;
-  max-width: 100vw;
-  height: 100vh;
-  background: var(--bone);
-  border-left: 2px solid var(--black);
-  box-shadow: -4px 0 24px rgba(0,0,0,0.15);
-  z-index: 150;
-  display: flex;
-  flex-direction: column;
-  transform: translateX(100%);
-  transition: transform 0.4s cubic-bezier(.4,0,.2,1);
-}
-.ai-drawer.open { transform: translateX(0); }
-
-.ai-drawer-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  background: var(--bone);
-  flex-shrink: 0;
-  position: relative;
-}
-.ai-drawer-header::after {
-  content: '';
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
-  height: 4px;
-  background-color: var(--black);
-  background-image: var(--tendril-svg);
-  background-repeat: repeat-x;
-  background-size: 11px 4px;
-}
-.ai-drawer-title {
-  font-family: var(--font-display);
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--black);
-}
-.ai-drawer-header-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.ai-lang-toggle {
-  display: flex;
-  gap: 4px;
-}
-.ai-lang-btn {
-  padding: 5px 8px;
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  border: 1.5px solid var(--black);
-  background: transparent;
-  color: var(--black);
-  transition: all 0.2s;
-}
-.ai-lang-btn.active { background: var(--gold); border-color: var(--gold); }
-.ai-lang-btn:hover:not(.active) { background: var(--gold-dim); }
-
-.ai-drawer-close {
-  width: 26px; height: 26px;
-  background: transparent;
-  border: 1.5px solid var(--black);
-  color: var(--black);
-  font-size: 0.8rem;
-  cursor: pointer;
-  font-family: 'Outfit', sans-serif;
-  transition: all 0.2s;
-}
-.ai-drawer-close:hover { background: var(--crimson); color: white; border-color: var(--crimson); }
-
-.ai-tabs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  border-bottom: 2px solid var(--black);
-  flex-shrink: 0;
-}
-.ai-tab {
-  padding: 9px;
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  cursor: pointer;
-  border: none;
-  background: transparent;
-  color: var(--muted);
-  border-bottom: 3px solid transparent;
-  transition: all 0.2s;
-}
-.ai-tab.active { color: var(--black); border-bottom: 3px solid var(--gold); background: var(--gold-dim); }
-.ai-tab:hover:not(.active) { color: var(--crimson); }
-
-.ai-panel { display: none; flex: 1; flex-direction: column; overflow: hidden; }
-.ai-panel.active { display: flex; }
-
-/* Fun Fact tab */
-.funfact-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 16px;
-  gap: 14px;
-  overflow-y: auto;
-}
-.funfact-card {
-  background: white;
-  border: 2px solid var(--black);
-  padding: 18px;
-  position: relative;
-  min-height: 160px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.funfact-card::after {
-  content: '';
-  position: absolute;
-  bottom: 6px; right: 6px;
-  width: 26px; height: 26px;
-  background-image: var(--corner-flourish);
-  background-repeat: no-repeat;
-  background-size: contain;
-  opacity: 0.25;
-  pointer-events: none;
-}
-.funfact-badge {
-  position: absolute;
-  top: -1px; left: -1px;
-  background: var(--gold);
-  border: 1.5px solid var(--black);
-  color: var(--black);
-  font-family: var(--font-display);
-  font-size: 0.58rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  padding: 2px 8px;
-  text-transform: uppercase;
-}
-.funfact-text {
-  font-family: var(--font-display);
-  font-size: 0.95rem;
-  color: var(--black);
-  line-height: 1.7;
-  margin-top: 16px;
-  font-style: italic;
-}
-.funfact-loading {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--muted);
-  font-size: 0.8rem;
-}
-.dot-spin { display: inline-flex; gap: 3px; }
-.dot-spin span {
-  width: 5px; height: 5px;
-  background: var(--gold);
-  border-radius: 50%;
-  animation: dotBounce 0.8s ease-in-out infinite;
-}
-.dot-spin span:nth-child(2) { animation-delay: 0.15s; }
-.dot-spin span:nth-child(3) { animation-delay: 0.3s; }
-@keyframes dotBounce {
-  0%,80%,100% { transform: scale(0.6); opacity:0.4; }
-  40%          { transform: scale(1);   opacity:1; }
-}
-.funfact-new-btn {
-  width: 100%;
-  background: var(--gold);
-  border: 2px solid var(--black);
-  color: var(--black);
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  padding: 10px;
-  cursor: pointer;
-  text-transform: uppercase;
-  transition: all 0.2s;
-  flex-shrink: 0;
-  position: relative;
-}
-.funfact-new-btn:hover { background: #E6A600; box-shadow: 2px 2px 0 var(--black); transform: translate(-1px,-1px); }
-.funfact-new-btn:active { transform: translate(0,0); box-shadow: none; }
-.funfact-new-btn:disabled { opacity: 0.5; cursor: not-allowed; transform:none; box-shadow:none; }
-
-.funfact-history { display: flex; flex-direction: column; gap: 8px; }
-.funfact-history-label {
-  font-size: 0.6rem; font-weight: 700;
-  letter-spacing: 0.12em; color: var(--muted); text-transform: uppercase;
-}
-.funfact-prev {
-  background: #FAFAF0;
-  border: 1px solid var(--border-dark);
-  padding: 10px 12px;
-  font-size: 0.78rem;
-  color: var(--muted);
-  line-height: 1.6;
-  font-style: italic;
-}
-
-/* Chat tab */
-.chat-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.chat-messages::-webkit-scrollbar { width: 3px; }
-.chat-messages::-webkit-scrollbar-thumb { background: var(--muted); }
-
-.chat-msg {
-  max-width: 85%;
-  padding: 10px 13px;
-  font-size: 0.82rem;
-  line-height: 1.6;
-  word-break: break-word;
-}
-.chat-msg.user {
-  background: var(--black);
-  color: var(--bone);
-  align-self: flex-end;
-}
-.chat-msg.ai {
-  background: white;
-  color: var(--black);
-  align-self: flex-start;
-  border: 1.5px solid var(--border-dark);
-}
-.chat-msg.ai.thinking { color: var(--muted); font-style: italic; }
-.chat-msg-label {
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  margin-bottom: 4px;
-  opacity: 0.6;
-}
-.chat-msg-text { white-space: pre-wrap; }
-
-/* Shared TTS Replay/Stop controls — used in chat bubbles and the Fun Fact card */
-.tts-controls {
-  display: flex;
-  gap: 6px;
-  margin-top: 8px;
-}
-.tts-btn {
-  background: transparent;
-  border: 1px solid var(--border-dark);
-  color: var(--black);
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.58rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 3px 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.tts-btn:hover:not(:disabled) { border-color: var(--gold); background: var(--gold-dim); }
-.tts-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-
-.tts-lang-switch { display: flex; gap: 4px; margin-left: auto; }
-.tts-lang-btn.active { background: var(--gold); border-color: var(--gold); }
-
-.chat-suggested {
-  padding: 10px 14px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  flex-shrink: 0;
-  background: #FAFAF0;
-}
-.chat-chip {
-  background: transparent;
-  border: 1px solid var(--border-dark);
-  color: var(--black);
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.62rem;
-  padding: 4px 9px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.chat-chip:hover { border-color: var(--gold); background: var(--gold-dim); }
-
-.chat-input-row {
-  display: flex;
-  border-top: 2px solid var(--black);
-  flex-shrink: 0;
-}
-.chat-input-row textarea {
-  flex: 1;
-  background: var(--bone);
-  border: none;
-  outline: none;
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.82rem;
-  color: var(--black);
-  padding: 10px 12px;
-  resize: none;
-  height: 56px;
-  line-height: 1.5;
-}
-.chat-input-row textarea::placeholder { color: var(--muted); }
-.chat-voice-btn,
-.chat-stop-btn,
-.chat-send-btn {
-  background: linear-gradient(135deg, var(--gold), #ffd24d);
-  border: 2px solid var(--black);
-  color: var(--black);
-  font-size: 1rem;
-  width: 48px;
-  height: 48px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-  border-radius: 14px;
-  box-shadow: 0 4px 0 var(--black);
-  transform: translateY(0);
-}
-.chat-stop-btn {
-  background: linear-gradient(135deg, var(--crimson), #b00000);
-  color: white;
-}
-.chat-voice-btn:hover,
-.chat-send-btn:hover {
-  background: linear-gradient(135deg, #ffd24d, var(--gold));
-  transform: translateY(-2px);
-  box-shadow: 0 6px 0 var(--black);
-}
-.chat-stop-btn:hover {
-  background: linear-gradient(135deg, #b00000, var(--crimson));
-  transform: translateY(-2px);
-  box-shadow: 0 6px 0 var(--black);
-}
-.chat-voice-btn:active,
-.chat-stop-btn:active,
-.chat-send-btn:active {
-  transform: translateY(1px);
-  box-shadow: 0 2px 0 var(--black);
-}
-.chat-voice-btn.listening {
-  background: linear-gradient(135deg, var(--crimson), #d62828);
-  color: white;
-  animation: pulseVoiceBtn 1s infinite;
-}
-.chat-voice-btn:disabled,
-.chat-stop-btn:disabled,
-.chat-send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform:none; box-shadow:none; }
-
-@keyframes pulseVoiceBtn {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.04); }
-}
-
-/* Backend-offline notice inside the drawer (hidden unless /api/chat is unreachable) */
-.ai-offline-banner {
-  display: none;
-  padding: 8px 14px;
-  background: var(--crimson-dim);
-  border-bottom: 1px solid var(--border-dark);
-  color: var(--crimson);
-  font-size: 0.68rem;
-  line-height: 1.5;
-}
-.ai-offline-banner.show { display: block; }
-
-/* ============================================================
-   CULTURAL MOTIF STRIP — header nav accent
-   Five stylized Orang Ulu motifs as small hoverable/focusable
-   icons, sitting beside the workflow-step indicator. Decorative
-   only — no effect on app behaviour.
-   ============================================================ */
-.header-center-group {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-.motif-nav-strip {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding-left: 14px;
-  border-left: 1.5px solid var(--border-dark);
-}
-.motif-icon-btn {
-  background: transparent;
-  border: none;
-  padding: 2px;
-  width: 20px;
-  height: 20px;
-  color: var(--muted);
-  cursor: pointer;
-  transition: color 0.2s, transform 0.2s;
-}
-.motif-icon-btn svg { width: 100%; height: 100%; display: block; }
-.motif-icon-btn:hover,
-.motif-icon-btn:focus-visible {
-  color: var(--crimson);
+.nav-cta:hover, .nav-cta:focus-visible {
+  box-shadow: 0 0 24px rgba(228, 184, 77, .45);
   transform: translateY(-1px);
 }
-.motif-icon-btn:focus-visible { outline: 1.5px solid var(--gold); outline-offset: 3px; }
 
-/* Shared tooltip card — one element, repositioned per icon */
-.motif-tooltip {
-  position: fixed;
-  z-index: 260;
-  width: 260px;
-  background: var(--bone);
-  border: 1.5px solid var(--crimson);
-  box-shadow: 3px 3px 0 rgba(0,0,0,0.15);
-  padding: 12px 14px;
-  opacity: 0;
-  transform: translateY(4px);
-  pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 55% at 50% 118%, rgba(59, 31, 10, .55), transparent),
+    radial-gradient(ellipse 60% 45% at 50% -12%, rgba(201, 168, 76, .12), transparent),
+    var(--ink);
 }
-.motif-tooltip.show { opacity: 1; transform: translateY(0); }
-.motif-tooltip-name {
-  font-family: var(--font-display);
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--black);
-}
-.motif-tooltip-native {
-  font-size: 0.66rem;
-  font-style: italic;
-  color: var(--crimson);
-  margin-bottom: 6px;
-}
-.motif-tooltip-desc {
-  font-size: 0.74rem;
-  line-height: 1.55;
-  color: var(--muted);
-  margin-bottom: 8px;
-}
-.motif-tooltip-groups span {
-  display: inline-block;
-  font-size: 0.6rem;
+.hero-content { position: relative; z-index: 3; max-width: 880px; padding: 120px 28px 90px; }
+
+.hero h1 {
+  font-size: clamp(2.6rem, 6.4vw, 4.6rem);
   font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--black);
-  background: var(--gold-dim);
-  border: 1px solid var(--gold-med);
-  padding: 2px 7px;
-  margin: 0 4px 4px 0;
+  line-height: 1.12;
+  margin-bottom: 26px;
 }
+.hero h1 em {
+  font-style: italic;
+  background: linear-gradient(120deg, var(--gold-pale), var(--gold-bright) 55%, var(--gold));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.hero-sub {
+  font-size: clamp(1rem, 1.7vw, 1.18rem);
+  color: var(--cream-dim);
+  max-width: 640px;
+  margin: 0 auto 42px;
+}
+.hero-cta-row { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; }
 
-/* Bottom decorative border strip — Mata (diamond) chain, complements
-   the existing top accent-bar. Fixed + non-interactive so it can't
-   shift the app's fixed-viewport layout or block clicks. */
-.motif-border-bottom {
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  height: 4px;
-  background-color: var(--black);
-  background-image: var(--mata-strip-svg);
-  background-repeat: repeat-x;
-  background-size: 14px 4px;
-  z-index: 5;
+.btn-gold {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: .95rem;
+  font-weight: 500;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--gold-bright);
+  border: 1.5px solid var(--gold);
+  padding: 15px 34px;
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+  transition: color .4s var(--ease-luxe);
+}
+/* Gold fill sweeps in from the left on hover */
+.btn-gold::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .4s var(--ease-luxe);
+  z-index: -1;
+}
+.btn-gold:hover, .btn-gold:focus-visible { color: var(--ink); }
+.btn-gold:hover::before, .btn-gold:focus-visible::before { transform: scaleX(1); }
+
+.btn-ghost {
+  display: inline-block;
+  font-size: .95rem;
+  font-weight: 400;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--cream-dim);
+  padding: 15px 24px;
+  border-bottom: 1px solid rgba(232, 213, 176, .3);
+  transition: color .3s, border-color .3s;
+}
+.btn-ghost:hover, .btn-ghost:focus-visible { color: var(--gold-pale); border-color: var(--gold); }
+
+/* The great tree behind the hero text */
+.hero-bg-motif {
+  position: absolute;
+  z-index: 1;
+  top: 50%; left: 50%;
+  width: min(78vh, 720px);
+  height: min(78vh, 720px);
+  transform: translate(-50%, -50%);
+  opacity: .1;
   pointer-events: none;
 }
 
-@media (max-width: 640px) {
-  .motif-nav-strip { display: none; }
+/* Floating corner accents */
+.hero-float {
+  position: absolute;
+  z-index: 2;
+  opacity: .5;
+  pointer-events: none;
+  animation: floatY 9s ease-in-out infinite;
+}
+.hero-float.f-hornbill { top: 14%; right: 6%;  width: 190px; animation-duration: 11s; }
+.hero-float.f-aso      { bottom: 10%; left: 5%; width: 170px; animation-delay: -4s; }
+.hero-float.f-beads    { top: 20%; left: 8%;   width: 110px; opacity: .38; animation-duration: 13s; animation-delay: -7s; }
+
+.hero-scroll-hint {
+  position: absolute;
+  bottom: 30px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  color: var(--gold);
+  font-size: .72rem;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  text-decoration: none;
+  opacity: .7;
+}
+
+/* ============================================================
+   GOLD DIAMOND DIVIDER STRIPS (SVG pattern)
+   ============================================================ */
+.divider-strip { display: block; width: 100%; height: 26px; opacity: .55; }
+
+/* ============================================================
+   ABOUT / CULTURAL CONTEXT
+   ============================================================ */
+.about { position: relative; padding: 120px 0 110px; background: var(--ink-2); }
+.about-grid {
+  display: grid;
+  grid-template-columns: 1.15fr .85fr;
+  gap: 70px;
+  align-items: center;
+}
+.about-text p { color: var(--cream-dim); margin-bottom: 18px; font-size: 1.02rem; }
+.about-text strong { color: var(--cream); font-weight: 500; }
+
+.about-figure { position: relative; display: flex; justify-content: center; }
+.about-figure > svg {
+  width: min(100%, 380px);
+  filter: drop-shadow(0 0 30px rgba(201, 168, 76, .12));
+}
+/* Faint echo of the mask behind itself */
+.about-figure::before {
+  content: '';
+  position: absolute;
+  inset: -12%;
+  background: radial-gradient(circle at 50% 45%, rgba(201, 168, 76, .1), transparent 65%);
+  pointer-events: none;
+}
+
+.about-stats {
+  display: flex;
+  gap: 44px;
+  margin-top: 36px;
+  flex-wrap: wrap;
+}
+.about-stat .num {
+  font-family: var(--font-display);
+  font-size: 2.1rem;
+  color: var(--gold-bright);
+  line-height: 1;
+}
+.about-stat .lbl {
+  font-size: .8rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--cream-dim);
+  margin-top: 6px;
+}
+
+/* ============================================================
+   MOTIFS SHOWCASE
+   ============================================================ */
+.motifs { position: relative; padding: 120px 0 130px; }
+.motifs-head { text-align: center; max-width: 660px; margin: 0 auto 70px; }
+.motifs-head p { color: var(--cream-dim); }
+
+.motif-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+}
+.motif-card {
+  position: relative;
+  background: linear-gradient(165deg, var(--ink-3), var(--ink-2) 60%);
+  border: 1px solid rgba(201, 168, 76, .22);
+  border-radius: 14px;
+  padding: 38px 30px 30px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform .5s var(--ease-luxe), border-color .5s, box-shadow .5s;
+  outline-offset: 4px;
+}
+.motif-card:hover, .motif-card:focus-visible {
+  transform: translateY(-8px);
+  border-color: rgba(228, 184, 77, .6);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .5), 0 0 34px rgba(201, 168, 76, .16);
+}
+.motif-card:focus-visible { outline: 2px solid var(--gold); }
+.motif-card svg.motif-art {
+  width: 170px;
+  height: 170px;
+  margin-bottom: 20px;
+  transition: filter .5s;
+}
+.motif-card:hover svg.motif-art,
+.motif-card:focus-visible svg.motif-art { animation: glowPulse 2.6s ease-in-out infinite; }
+
+.motif-card h3 { font-size: 1.35rem; margin-bottom: 4px; }
+.motif-card .local-name { font-style: italic; color: var(--gold-pale); font-family: var(--font-display); font-size: .98rem; }
+.motif-tribe {
+  display: inline-block;
+  margin: 14px 0 12px;
+  font-size: .7rem;
+  font-weight: 500;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--gold-bright);
+  border: 1px solid rgba(201, 168, 76, .45);
+  border-radius: 999px;
+  padding: 5px 14px;
+}
+.motif-card .teaser { font-size: .9rem; color: var(--cream-dim); }
+.motif-card .hint {
+  display: block;
+  margin-top: 16px;
+  font-size: .7rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(201, 168, 76, .55);
+}
+
+/* ============================================================
+   ROBOT PLOTTER SECTION
+   ============================================================ */
+.plotter {
+  position: relative;
+  padding: 130px 0;
+  background:
+    radial-gradient(ellipse 70% 60% at 85% 30%, rgba(59, 31, 10, .5), transparent),
+    var(--ink-2);
+  overflow: hidden;
+}
+/* Giant weave ghosted into the section background */
+.plotter-bg-motif {
+  position: absolute;
+  right: -140px; top: -110px;
+  width: 560px; height: 560px;
+  opacity: .09;
+  pointer-events: none;
+  animation: slowSpin 140s linear infinite;
+}
+.plotter-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: .9fr 1.1fr;
+  gap: 70px;
+  align-items: center;
+}
+.plotter-text p { color: var(--cream-dim); margin-bottom: 18px; font-size: 1.02rem; }
+
+.plotter-steps { margin-top: 34px; display: grid; gap: 16px; }
+.pstep {
+  display: flex;
+  gap: 18px;
+  align-items: baseline;
+  border-left: 2px solid rgba(201, 168, 76, .35);
+  padding: 6px 0 6px 20px;
+  transition: border-color .4s;
+}
+.pstep:hover { border-color: var(--gold-bright); }
+.pstep .n {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--gold-bright);
+  min-width: 34px;
+}
+.pstep h4 { font-family: var(--font-body); font-weight: 500; color: var(--cream); font-size: 1rem; margin-bottom: 2px; }
+.pstep p { font-size: .9rem; color: var(--cream-dim); margin: 0; }
+
+.plotter-figure { display: flex; justify-content: center; }
+.plotter-figure svg { width: min(100%, 470px); filter: drop-shadow(0 20px 40px rgba(0,0,0,.45)); }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+footer { background: #070707; }
+.footer-inner {
+  padding: 64px 32px 46px;
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.footer-brand { max-width: 420px; }
+.footer-brand .nav-logo { margin-bottom: 14px; }
+.footer-ack {
+  font-size: .9rem;
+  color: var(--cream-dim);
+  font-style: italic;
+  font-family: var(--font-display);
+  line-height: 1.8;
+}
+.footer-links { display: grid; gap: 10px; }
+.footer-links a { color: var(--cream-dim); text-decoration: none; font-size: .9rem; transition: color .3s; }
+.footer-links a:hover { color: var(--gold-pale); }
+.footer-bottom {
+  border-top: 1px solid rgba(201, 168, 76, .16);
+  text-align: center;
+  padding: 22px 20px;
+  font-size: .78rem;
+  letter-spacing: .1em;
+  color: rgba(232, 213, 176, .5);
+}
+
+/* ============================================================
+   MOTIF TOOLTIP CARD
+   ============================================================ */
+.motif-tip {
+  position: fixed;
+  z-index: 200;
+  width: min(360px, calc(100vw - 32px));
+  background: linear-gradient(170deg, #191307, #0d0c09 70%);
+  border: 1px solid rgba(228, 184, 77, .55);
+  border-radius: 12px;
+  padding: 22px 24px 20px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .65), 0 0 30px rgba(201, 168, 76, .14);
+  opacity: 0;
+  transform: translateY(10px) scale(.98);
+  pointer-events: none;
+  transition: opacity .3s var(--ease-luxe), transform .3s var(--ease-luxe);
+}
+.motif-tip.show { opacity: 1; transform: none; }
+.motif-tip h4 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--cream);
+  margin-bottom: 2px;
+}
+.motif-tip .tip-local { font-style: italic; color: var(--gold-pale); font-size: .92rem; }
+.motif-tip .tip-tribe {
+  display: inline-block;
+  margin: 12px 0;
+  font-size: .66rem;
+  font-weight: 600;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: linear-gradient(135deg, var(--gold-pale), var(--gold));
+  border-radius: 999px;
+  padding: 4px 13px;
+}
+.motif-tip .tip-body { font-size: .88rem; color: var(--cream-dim); line-height: 1.75; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 980px) {
+  .motif-grid { grid-template-columns: repeat(2, 1fr); }
+  .about-grid, .plotter-grid { grid-template-columns: 1fr; gap: 46px; }
+  .about-figure { order: -1; }
+  .hero-float.f-beads { display: none; }
+}
+@media (max-width: 720px) {
+  .nav-links { display: none; }
+  .wrap { padding: 0 22px; }
+  .motif-grid { grid-template-columns: 1fr; max-width: 420px; margin: 0 auto; }
+  .hero-float.f-hornbill { width: 120px; right: 2%; opacity: .35; }
+  .hero-float.f-aso { width: 110px; opacity: .35; }
+  .about, .motifs, .plotter { padding-top: 84px; padding-bottom: 84px; }
 }
 </style>
 </head>
 <body>
 
-<div class="accent-bar"></div>
-
-<!-- ============ CULTURAL MOTIF SPRITE ============
-     Five clean, stylized line-art SVGs, reused via <use> in the
-     header motif strip. Abstracted for beadwork/carving-style
-     legibility at small sizes, not literal illustrations. -->
-<svg aria-hidden="true" focusable="false" style="position:absolute; width:0; height:0; overflow:hidden;">
+<!-- ============================================================
+     SVG MOTIF LIBRARY
+     Six Orang Ulu motifs drawn as reusable <symbol>s. All artwork is
+     stylised in stroke-gold "carved line" style — respectful evocations,
+     not reproductions of any single community's protected design.
+     ============================================================ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
-    <symbol id="motif-aso" viewBox="0 0 40 40">
-      <path d="M20 6 C 26 6 28 11 24 13 C 30 13 32 19 26 20 C 32 21 32 27 26 27 C 28 30 25 34 20 33 C 15 34 12 30 14 27 C 8 27 8 21 14 20 C 8 19 10 13 16 13 C 12 11 14 6 20 6 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-      <circle cx="20" cy="14" r="1.6" fill="currentColor"/>
-      <path d="M20 17 C 22 19 22 22 20 23 C 18 22 18 19 20 17 Z" fill="currentColor" opacity="0.55"/>
+
+    <!-- 1 · ASO' — Kenyah/Kayan dog-dragon, curling spiral body -->
+    <symbol id="m-aso" viewBox="0 0 200 200" fill="none" stroke-linecap="round">
+      <path d="M52 168 C24 148 14 118 20 88 C27 55 56 34 92 32 C124 30 152 50 156 80 C160 106 142 128 116 130 C96 132 80 118 80 100 C80 86 91 76 104 77 C114 78 120 86 118 95"
+            stroke="#C9A84C" stroke-width="7"/>
+      <path d="M156 80 C168 74 176 64 178 52" stroke="#E4B84D" stroke-width="6"/>
+      <path d="M156 84 C170 88 181 84 188 72" stroke="#E4B84D" stroke-width="6"/>
+      <circle cx="134" cy="70" r="6.5" fill="#F5D17A" stroke="none"/>
+      <path d="M40 60 C30 48 32 34 44 26" stroke="#C9A84C" stroke-width="5.5"/>
+      <path d="M70 176 C84 184 100 182 110 172" stroke="#C9A84C" stroke-width="5.5"/>
+      <path d="M148 132 C158 142 158 156 148 164" stroke="#C9A84C" stroke-width="5.5"/>
     </symbol>
-    <symbol id="motif-paku" viewBox="0 0 40 40">
-      <path d="M20 34 C20 24 20 18 20 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-      <path d="M20 12 C20 8 16 6 13 8 C11 9.5 12 13 16 12.5 C18 12.2 19.3 11 20 9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-      <path d="M20 18 C24 18 27 15 26 12 C25.3 10 22 10 21 12.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.85"/>
-      <path d="M20 24 C15 24 12 21 13.5 18 C14.5 16 17.5 16.5 18 19" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.7"/>
-      <path d="M20 30 C25 30 28 27 26.5 24 C25.5 22 22.5 22.5 22 25" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.55"/>
+
+    <!-- 2 · BALI AKANG — Kenyah guardian face from war shields -->
+    <symbol id="m-mask" viewBox="0 0 200 200" fill="none" stroke-linecap="round">
+      <path d="M100 12 C140 12 168 32 172 68 C176 104 160 150 130 178 C120 187 80 187 70 178 C40 150 24 104 28 68 C32 32 60 12 100 12 Z"
+            stroke="#C9A84C" stroke-width="5"/>
+      <ellipse cx="64" cy="80" rx="25" ry="15" stroke="#E4B84D" stroke-width="5"/>
+      <ellipse cx="136" cy="80" rx="25" ry="15" stroke="#E4B84D" stroke-width="5"/>
+      <circle cx="64" cy="80" r="7" fill="#F5D17A" stroke="none"/>
+      <circle cx="136" cy="80" r="7" fill="#F5D17A" stroke="none"/>
+      <path d="M38 58 C50 40 80 36 96 48" stroke="#C9A84C" stroke-width="5"/>
+      <path d="M162 58 C150 40 120 36 104 48" stroke="#C9A84C" stroke-width="5"/>
+      <path d="M100 60 L100 108" stroke="#C9A84C" stroke-width="5"/>
+      <path d="M88 112 C92 120 108 120 112 112" stroke="#C9A84C" stroke-width="5"/>
+      <path d="M62 142 L74 130 L86 142 L100 130 L114 142 L126 130 L138 142" stroke="#E4B84D" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M44 118 C36 128 38 142 50 148" stroke="#C9A84C" stroke-width="4.5"/>
+      <path d="M156 118 C164 128 162 142 150 148" stroke="#C9A84C" stroke-width="4.5"/>
     </symbol>
-    <symbol id="motif-hornbill" viewBox="0 0 40 40">
-      <path d="M8 22 L16 22 L16 15 L23 15 L30 10 L26 16 L23 18 L23 24 L18 30 L20 32 L14 32 L16 27 L12 27 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-      <circle cx="19" cy="18" r="1.2" fill="currentColor"/>
+
+    <!-- 3 · KELABIT BEADWORK — diamond ring + cross in bead squares -->
+    <symbol id="m-beads" viewBox="0 0 200 200">
+      <!-- outer diamond ring, gold beads -->
+      <g fill="#C9A84C">
+        <rect x="172" y="92" width="16" height="16" rx="3"/><rect x="152" y="112" width="16" height="16" rx="3"/>
+        <rect x="132" y="132" width="16" height="16" rx="3"/><rect x="112" y="152" width="16" height="16" rx="3"/>
+        <rect x="92"  y="172" width="16" height="16" rx="3"/><rect x="72"  y="152" width="16" height="16" rx="3"/>
+        <rect x="52"  y="132" width="16" height="16" rx="3"/><rect x="32"  y="112" width="16" height="16" rx="3"/>
+        <rect x="12"  y="92"  width="16" height="16" rx="3"/><rect x="32"  y="72"  width="16" height="16" rx="3"/>
+        <rect x="52"  y="52"  width="16" height="16" rx="3"/><rect x="72"  y="32"  width="16" height="16" rx="3"/>
+        <rect x="92"  y="12"  width="16" height="16" rx="3"/><rect x="112" y="32"  width="16" height="16" rx="3"/>
+        <rect x="132" y="52"  width="16" height="16" rx="3"/><rect x="152" y="72"  width="16" height="16" rx="3"/>
+      </g>
+      <!-- inner cross, cream beads -->
+      <g fill="#F5ECD7">
+        <rect x="92" y="92"  width="16" height="16" rx="3"/><rect x="112" y="92" width="16" height="16" rx="3"/>
+        <rect x="132" y="92" width="16" height="16" rx="3"/><rect x="72" y="92"  width="16" height="16" rx="3"/>
+        <rect x="52" y="92"  width="16" height="16" rx="3"/><rect x="92" y="112" width="16" height="16" rx="3"/>
+        <rect x="92" y="132" width="16" height="16" rx="3"/><rect x="92" y="72"  width="16" height="16" rx="3"/>
+        <rect x="92" y="52"  width="16" height="16" rx="3"/>
+      </g>
+      <!-- corner accents, pale gold -->
+      <g fill="#F5D17A">
+        <rect x="152" y="152" width="16" height="16" rx="3"/><rect x="32" y="152" width="16" height="16" rx="3"/>
+        <rect x="152" y="32"  width="16" height="16" rx="3"/><rect x="32" y="32"  width="16" height="16" rx="3"/>
+      </g>
     </symbol>
-    <symbol id="motif-mata" viewBox="0 0 40 40">
-      <path d="M20 6 L32 20 L20 34 L8 20 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-      <path d="M20 13 L26 20 L20 27 L14 20 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
-      <circle cx="20" cy="20" r="2.1" fill="currentColor"/>
+
+    <!-- 4 · PENAN WEAVE — interlocking rattan lattice -->
+    <symbol id="m-weave" viewBox="0 0 200 200" fill="none">
+      <clipPath id="weaveClip"><rect x="20" y="20" width="160" height="160" rx="16"/></clipPath>
+      <g clip-path="url(#weaveClip)">
+        <g transform="rotate(45 100 100)" stroke="#C9A84C" stroke-width="13">
+          <line x1="-60" y1="24"  x2="260" y2="24"/><line x1="-60" y1="62"  x2="260" y2="62"/>
+          <line x1="-60" y1="100" x2="260" y2="100"/><line x1="-60" y1="138" x2="260" y2="138"/>
+          <line x1="-60" y1="176" x2="260" y2="176"/>
+        </g>
+        <g transform="rotate(-45 100 100)" stroke="#F5D17A" stroke-width="13" stroke-dasharray="26 12" stroke-dashoffset="6">
+          <line x1="-60" y1="24"  x2="260" y2="24"/><line x1="-60" y1="62"  x2="260" y2="62"/>
+          <line x1="-60" y1="100" x2="260" y2="100"/><line x1="-60" y1="138" x2="260" y2="138"/>
+          <line x1="-60" y1="176" x2="260" y2="176"/>
+        </g>
+      </g>
+      <rect x="20" y="20" width="160" height="160" rx="16" stroke="#C9A84C" stroke-width="4"/>
     </symbol>
-    <symbol id="motif-ukir" viewBox="0 0 40 40">
-      <path d="M20 20 C20 13 27 13 27 20 C27 27 20 27 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-      <path d="M20 20 C20 27 13 27 13 20 C13 13 20 13 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-      <circle cx="27" cy="20" r="1.3" fill="currentColor"/>
-      <circle cx="13" cy="20" r="1.3" fill="currentColor"/>
+
+    <!-- 5 · TINGANG — Kayan hornbill, casque and sweeping tail -->
+    <symbol id="m-hornbill" viewBox="0 0 200 200" fill="none" stroke-linecap="round">
+      <path d="M74 96 C60 118 62 142 84 152 C104 161 124 150 128 130" stroke="#C9A84C" stroke-width="6"/>
+      <path d="M74 96 C76 78 90 64 108 62" stroke="#C9A84C" stroke-width="6"/>
+      <path d="M108 62 C138 54 166 62 180 84" stroke="#E4B84D" stroke-width="6"/>
+      <path d="M108 74 C134 72 156 80 170 94" stroke="#E4B84D" stroke-width="6"/>
+      <path d="M108 52 C130 40 152 42 164 54 C158 60 148 60 140 56" stroke="#F5D17A" stroke-width="5.5"/>
+      <path d="M100 54 C96 44 100 34 110 30" stroke="#C9A84C" stroke-width="5"/>
+      <circle cx="116" cy="68" r="5.5" fill="#F5D17A" stroke="none"/>
+      <path d="M84 152 C64 168 42 176 20 174" stroke="#C9A84C" stroke-width="5.5"/>
+      <path d="M90 156 C76 176 58 188 36 190" stroke="#C9A84C" stroke-width="5.5"/>
+      <path d="M96 158 C90 178 78 192 62 196" stroke="#C9A84C" stroke-width="5.5"/>
+      <path d="M96 112 C110 108 120 116 118 128 C116 136 108 140 102 136" stroke="#E4B84D" stroke-width="5"/>
     </symbol>
+
+    <!-- 6 · TREE OF LIFE — trunk, curling branches, bead fruit -->
+    <symbol id="m-tree" viewBox="0 0 200 200" fill="none" stroke-linecap="round">
+      <path d="M100 190 L100 92" stroke="#C9A84C" stroke-width="9"/>
+      <path d="M100 190 C86 190 74 184 68 172 C64 164 68 156 76 156" stroke="#C9A84C" stroke-width="6"/>
+      <path d="M100 190 C114 190 126 184 132 172 C136 164 132 156 124 156" stroke="#C9A84C" stroke-width="6"/>
+      <path d="M100 132 C80 130 62 120 54 102 C50 92 54 82 64 80" stroke="#E4B84D" stroke-width="6"/>
+      <path d="M100 132 C120 130 138 120 146 102 C150 92 146 82 136 80" stroke="#E4B84D" stroke-width="6"/>
+      <path d="M100 106 C84 102 72 92 68 78 C66 70 72 62 80 62" stroke="#E4B84D" stroke-width="5.5"/>
+      <path d="M100 106 C116 102 128 92 132 78 C134 70 128 62 120 62" stroke="#E4B84D" stroke-width="5.5"/>
+      <path d="M100 92 C100 68 100 52 100 42 C100 32 108 26 116 28" stroke="#F5D17A" stroke-width="5.5"/>
+      <g fill="#F5D17A">
+        <circle cx="64" cy="80" r="4.5"/><circle cx="136" cy="80" r="4.5"/>
+        <circle cx="80" cy="62" r="4.5"/><circle cx="120" cy="62" r="4.5"/>
+        <circle cx="116" cy="28" r="4.5"/><circle cx="76" cy="156" r="4"/><circle cx="124" cy="156" r="4"/>
+      </g>
+    </symbol>
+
+    <!-- MATA mini-diamond — logo mark + border strips -->
+    <symbol id="m-mata" viewBox="0 0 40 40" fill="none">
+      <rect x="12" y="12" width="16" height="16" transform="rotate(45 20 20)" stroke="#E4B84D" stroke-width="3"/>
+      <circle cx="20" cy="20" r="3.4" fill="#F5D17A"/>
+    </symbol>
+
+    <!-- Repeating diamond strip for dividers & footer border -->
+    <pattern id="diamondStrip" width="38" height="26" patternUnits="userSpaceOnUse">
+      <path d="M19 4 L31 13 L19 22 L7 13 Z" fill="none" stroke="#C9A84C" stroke-width="1.6"/>
+      <circle cx="19" cy="13" r="1.8" fill="#E4B84D"/>
+    </pattern>
   </defs>
 </svg>
 
-<!-- ============ ONBOARDING TUTORIAL POPUP ============ -->
-<div class="tutorial-overlay" id="tutorialOverlay">
-  <div class="tutorial-modal" id="tutorialModal">
-    <button class="tutorial-close" id="tutorialClose" title="Close">✕</button>
-
-    <div class="tutorial-pages-wrapper">
-      <div class="tutorial-pages-track" id="tutorialTrack">
-
-        <!-- PAGE 1 -->
-        <div class="tutorial-page">
-          <div class="tutorial-img-slot">
-            <span class="slot-label">Screenshot coming soon</span>
-          </div>
-          <h2 class="tutorial-title">Our Heritage Library</h2>
-        </div>
-
-        <!-- PAGE 2 -->
-        <div class="tutorial-page">
-          <div class="tutorial-img-slot">
-            <span class="slot-label">Screenshot coming soon</span>
-          </div>
-          <h2 class="tutorial-title">Draw Mode</h2>
-        </div>
-
-        <!-- PAGE 3 -->
-        <div class="tutorial-page">
-          <div class="tutorial-img-slot">
-            <img src="third.png" alt="Welcome">
-          </div>
-          <h2 class="tutorial-title">Toolbar</h2>
-        </div>
-
-        <!-- PAGE 4 -->
-        <div class="tutorial-page">
-          <div class="tutorial-img-slot">
-            <img src="forth.png" alt="Welcome">
-          </div>
-          <h2 class="tutorial-title">Generate G-Code</h2>
-        </div>
-
-        <!-- PAGE 5 -->
-        <div class="tutorial-page">
-          <div class="tutorial-img-slot">
-            <img src="fifth.png" alt="Welcome">
-          </div>
-          <h2 class="tutorial-title">Send G-Code to HeriTech</h2>
-        </div>
-
-        <!-- PAGE 6 — VIDEO DEMO -->
-        <div class="tutorial-page">
-          <div class="tutorial-video-slot">
-            <!-- 🎥 INSERT DEMO VIDEO HERE -->
-            <!-- e.g. <video controls src="demo.mp4"></video> -->
-            <!-- or <iframe src="https://www.youtube.com/embed/VIDEO_ID"></iframe> -->
-            <span class="slot-label">Demo Video</span>
-          </div>
-          <h2 class="tutorial-title">See It In Action</h2>
-          <p class="tutorial-text">Watch a full walkthrough of designing a motif and sending it to the robot.</p>
-        </div>
-
-      </div>
+<!-- ============================================================
+     NAVIGATION
+     ============================================================ -->
+<nav class="nav" id="nav" aria-label="Main navigation">
+  <div class="nav-inner">
+    <a class="nav-logo" href="#top" aria-label="HeriTech home">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><use href="#m-mata"></use></svg>
+      <span class="nav-logo-name">Heri<span>Tech</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="#heritage">Heritage</a>
+      <a href="#motifs">The Motifs</a>
+      <a href="#plotter">The Plotter</a>
     </div>
-
-    <div class="tutorial-footer">
-      <button class="tutorial-arrow" id="tutorialPrev">←</button>
-      <div class="tutorial-dots" id="tutorialDots"></div>
-      <button class="tutorial-arrow" id="tutorialNext">→</button>
-    </div>
-
-    <button class="tutorial-skip" id="tutorialSkip">Start Designing →</button>
+    <a class="nav-cta" href="studio.html">Open Studio</a>
   </div>
-</div>
+</nav>
 
-<header>
-  <div class="logo">
-    <img src="logo.png" alt="HeriTech Logo" class="logo-icon">
-    <div class="logo-text">
-      <h1>HeriTech Pattern Studio</h1>
-      <p>Cultural Beadwork Automation System · Sarawak</p>
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<header class="hero" id="top">
+  <!-- Great tree ghosted behind the headline -->
+  <svg class="hero-bg-motif" aria-hidden="true"><use href="#m-tree"></use></svg>
+
+  <!-- Floating corner accents -->
+  <svg class="hero-float f-hornbill" viewBox="0 0 200 200" aria-hidden="true"><use href="#m-hornbill"></use></svg>
+  <svg class="hero-float f-aso" viewBox="0 0 200 200" aria-hidden="true"><use href="#m-aso"></use></svg>
+  <svg class="hero-float f-beads" viewBox="0 0 200 200" aria-hidden="true"><use href="#m-beads"></use></svg>
+
+  <div class="hero-content">
+    <span class="eyebrow">Sarawak · Borneo · Orang Ulu Heritage</span>
+    <h1>Where Ancient Motifs<br>Meet <em>Modern Machines</em></h1>
+    <p class="hero-sub">
+      HeriTech is a drawing robot that carries the living art of the Orang Ulu —
+      the curling aso' of the Kenyah and Kayan, Kelabit beadwork, Penan weave —
+      from longhouse walls into the digital age, one plotted stroke at a time.
+    </p>
+    <div class="hero-cta-row">
+      <a class="btn-gold" href="studio.html">Open the Pattern Studio</a>
+      <a class="btn-ghost" href="#motifs">Meet the Motifs ↓</a>
     </div>
   </div>
-  <div class="header-center-group">
-    <div class="header-steps">
-      <div class="hstep active" id="step1"><span class="snum">1</span> Draw</div>
-      <div class="hstep" id="step2"><span class="snum">2</span> Save</div>
-      <div class="hstep" id="step3"><span class="snum">3</span> G-Code</div>
-      <div class="hstep" id="step4"><span class="snum">4</span> Send</div>
-    </div>
 
-    <!-- Cultural motif strip — hover or focus an icon for its story -->
-    <nav class="motif-nav-strip" aria-label="Orang Ulu cultural motifs">
-      <button type="button" class="motif-icon-btn" data-motif="aso" aria-label="Aso — dog-dragon motif, a Kenyah and Kayan symbol of protection and bravery">
-        <svg viewBox="0 0 40 40" aria-hidden="true"><use href="#motif-aso"></use></svg>
-      </button>
-      <button type="button" class="motif-icon-btn" data-motif="paku" aria-label="Paku — fern frond motif, symbolising growth and the rainforest">
-        <svg viewBox="0 0 40 40" aria-hidden="true"><use href="#motif-paku"></use></svg>
-      </button>
-      <button type="button" class="motif-icon-btn" data-motif="hornbill" aria-label="Burung Enggang — hornbill motif, a sacred bird symbolising nobility">
-        <svg viewBox="0 0 40 40" aria-hidden="true"><use href="#motif-hornbill"></use></svg>
-      </button>
-      <button type="button" class="motif-icon-btn" data-motif="mata" aria-label="Mata — eye and diamond motif, representing vision and protection">
-        <svg viewBox="0 0 40 40" aria-hidden="true"><use href="#motif-mata"></use></svg>
-      </button>
-      <button type="button" class="motif-icon-btn" data-motif="ukir" aria-label="Ukir — interlocking spiral motif, symbolising continuity and ancestry">
-        <svg viewBox="0 0 40 40" aria-hidden="true"><use href="#motif-ukir"></use></svg>
-      </button>
-    </nav>
-  </div>
-  <button class="ai-toggle-btn" id="aiToggleBtn">🤖 Ask AI</button>
+  <a class="hero-scroll-hint" href="#heritage" aria-label="Scroll to heritage section">Scroll</a>
 </header>
 
-<!-- ============ AI ASSISTANT DRAWER ============ -->
-<div class="ai-drawer" id="aiDrawer">
+<svg class="divider-strip" aria-hidden="true"><rect width="100%" height="100%" fill="url(#diamondStrip)"/></svg>
 
-  <div class="ai-drawer-header">
-    <div class="ai-drawer-title">🤖 HeriTech AI Guide</div>
-    <div class="ai-drawer-header-right">
-      <div class="ai-lang-toggle" id="aiLangToggle">
-        <button class="ai-lang-btn active" data-lang="en" title="Reply in English">EN</button>
-        <button class="ai-lang-btn" data-lang="ms" title="Reply in Bahasa Malaysia">BM</button>
+<!-- ============================================================
+     ABOUT / CULTURAL CONTEXT
+     ============================================================ -->
+<section class="about" id="heritage">
+  <div class="wrap">
+    <div class="about-grid">
+      <div class="about-text reveal">
+        <span class="eyebrow">The People of the Upriver</span>
+        <h2 class="section-title">A living tradition,<br><em>carved in gold and line</em></h2>
+        <p>
+          <strong>Orang Ulu</strong> — "people of the interior" — is the shared name for more than
+          twenty distinct communities of the Sarawak highlands and river country: the
+          <strong>Kenyah</strong> and <strong>Kayan</strong> of the great Baram and Rajang rivers,
+          the <strong>Kelabit</strong> of the Bario highlands, the forest-wise <strong>Penan</strong>,
+          and many others. Their longhouses, war shields, tattoos and beadwork carry some of the most
+          sophisticated visual languages in Southeast Asia.
+        </p>
+        <p>
+          Every curl and diamond has a grammar. Motifs told you who a person was — their family,
+          their standing, their protection. That knowledge lives on in the hands of elders and
+          artists, and <strong>HeriTech exists to help a new generation draw with it</strong>:
+          a browser studio where anyone can sketch or remix a motif, and a robot plotter that
+          redraws it faithfully in physical ink.
+        </p>
+        <div class="about-stats">
+          <div class="about-stat"><div class="num">20+</div><div class="lbl">Distinct communities</div></div>
+          <div class="about-stat"><div class="num">6</div><div class="lbl">Motif families here</div></div>
+          <div class="about-stat"><div class="num">1</div><div class="lbl">Robot that draws them</div></div>
+        </div>
       </div>
-      <button class="ai-drawer-close" id="aiDrawerClose">✕</button>
-    </div>
-  </div>
-
-  <div class="ai-offline-banner" id="aiOfflineBanner">
-    ⚠ Can't reach the AI server right now. This feature needs the backend from your <code>/server.js</code> running (see SETUP.md) — it won't work on GitHub Pages alone.
-  </div>
-
-  <!-- Tabs -->
-  <div class="ai-tabs">
-    <button class="ai-tab active" id="tabFunfact">✨ Fun Facts</button>
-    <button class="ai-tab"        id="tabChat">💬 Ask Anything</button>
-  </div>
-
-  <!-- FUN FACT PANEL -->
-  <div class="ai-panel active" id="panelFunfact">
-    <div class="funfact-area" id="funfactArea">
-      <div class="funfact-card" id="funfactCard">
-        <div class="funfact-badge">★ Orang Ulu Fun Fact</div>
-        <div class="funfact-text" id="funfactText">Click the button below to discover a fascinating fact about Orang Ulu culture, beadwork, and traditions.</div>
-      </div>
-      <button class="funfact-new-btn" id="funfactBtn">✨ New Fun Fact</button>
-      <div class="funfact-history" id="funfactHistory"></div>
-    </div>
-  </div>
-
-  <!-- CHAT PANEL -->
-  <div class="ai-panel" id="panelChat">
-    <div class="chat-messages" id="chatMessages">
-      <div class="chat-msg ai">
-        <div class="chat-msg-label">HeriTech AI</div>
-        Selamat datang! I'm the HeriTech cultural guide. Ask me anything about Orang Ulu beadwork, traditions, or motifs.
+      <div class="about-figure reveal" >
+        <svg viewBox="0 0 200 200" role="img" aria-label="Bali Akang guardian mask motif from Kenyah war shields"
+             class="motif-hover" data-motif="mask" tabindex="0"><use href="#m-mask"></use></svg>
       </div>
     </div>
-    <div class="chat-suggested" id="chatSuggested">
-      <button class="chat-chip">What do beads symbolise?</button>
-      <button class="chat-chip">Tell me about Aso motifs</button>
-      <button class="chat-chip">Orang Ulu tribes in Sarawak</button>
-      <button class="chat-chip">How is a costume made?</button>
-    </div>
-    <div class="chat-input-row">
-      <textarea id="chatInput" placeholder="Ask about Orang Ulu culture..."></textarea>
-      <button class="chat-voice-btn" id="chatVoiceBtn" title="Speak your question">🎤</button>
-      <button class="chat-stop-btn" id="chatStopBtn" title="Stop listening">■</button>
-      <button class="chat-send-btn" id="chatSendBtn">➤</button>
-    </div>
-    <div class="chat-voice-status" id="chatVoiceStatus">Tap the mic and speak your question.</div>
   </div>
+</section>
 
-</div>
+<svg class="divider-strip" aria-hidden="true"><rect width="100%" height="100%" fill="url(#diamondStrip)"/></svg>
 
-<main>
-  <!-- ===== LEFT PANEL — Heritage Library ===== -->
-  <div class="left-panel">
-    <div class="panel-title">Heritage Library</div>
-
-    <div class="mode-toggle">
-      <button class="mode-btn active" id="modeLibBtn" data-mode="library">📚 Library</button>
-      <button class="mode-btn" id="modeDrawBtn" data-mode="draw">✏️ Draw</button>
+<!-- ============================================================
+     MOTIFS SHOWCASE
+     ============================================================ -->
+<section class="motifs" id="motifs">
+  <div class="wrap">
+    <div class="motifs-head reveal">
+      <span class="eyebrow">Six Visual Languages</span>
+      <h2 class="section-title">The <em>Motifs</em></h2>
+      <p>Hover or focus any motif to hear its story — who drew it, what it guarded, and what it still means today.</p>
     </div>
 
-    <!-- LIBRARY PANEL -->
-    <div id="libraryPanel" class="heritage-library">
-      <button class="lib-import-btn" id="importSvgBtn">⬆ Import SVG</button>
-      <input type="file" id="importSvgInput" accept=".svg,image/svg+xml" style="display:none;">
-      <div id="libEmpty" class="lib-empty">
-        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-          <rect x="8" y="8" width="32" height="32" rx="2" stroke="#000" stroke-width="1.5"/>
-          <path d="M16 24h16M24 16v16" stroke="#000" stroke-width="1.5"/>
+    <div class="motif-grid">
+      <article class="motif-card motif-hover reveal" data-motif="aso" tabindex="0"
+               role="img" aria-label="Aso', the dog-dragon motif of the Kenyah and Kayan — a guardian spirit of protection and noble rank">
+        <svg class="motif-art" viewBox="0 0 200 200" aria-hidden="true"><use href="#m-aso"></use></svg>
+        <h3>The Dog-Dragon</h3>
+        <div class="local-name">Aso'</div><br>
+        <span class="motif-tribe">Kenyah · Kayan</span>
+        <p class="teaser">The guardian beast that curls across shields, tattoos and baby carriers.</p>
+        <span class="hint">Hover for the story</span>
+      </article>
+
+      <article class="motif-card motif-hover reveal" data-motif="mask" tabindex="0"
+               role="img" aria-label="Bali Akang, the guardian face motif of Kenyah war shields — wide spirit eyes that stare down harm">
+        <svg class="motif-art" viewBox="0 0 200 200" aria-hidden="true"><use href="#m-mask"></use></svg>
+        <h3>The Guardian Face</h3>
+        <div class="local-name">Bali Akang</div><br>
+        <span class="motif-tribe">Kenyah</span>
+        <p class="teaser">The wide-eyed spirit face that stared out from painted war shields.</p>
+        <span class="hint">Hover for the story</span>
+      </article>
+
+      <article class="motif-card motif-hover reveal" data-motif="beads" tabindex="0"
+               role="img" aria-label="Kelabit beadwork — diamond and cross patterns built bead by bead, marking family and standing in the Bario highlands">
+        <svg class="motif-art" viewBox="0 0 200 200" aria-hidden="true"><use href="#m-beads"></use></svg>
+        <h3>Highland Beadwork</h3>
+        <div class="local-name">Kelabit bead lattice</div><br>
+        <span class="motif-tribe">Kelabit</span>
+        <p class="teaser">Diamonds and crosses assembled one heirloom bead at a time.</p>
+        <span class="hint">Hover for the story</span>
+      </article>
+
+      <article class="motif-card motif-hover reveal" data-motif="weave" tabindex="0"
+               role="img" aria-label="Penan rattan weave — the interlocking lattice of ajat baskets and mats, woven from the rainforest with nothing wasted">
+        <svg class="motif-art" viewBox="0 0 200 200" aria-hidden="true"><use href="#m-weave"></use></svg>
+        <h3>The Rainforest Weave</h3>
+        <div class="local-name">Penan rattan lattice</div><br>
+        <span class="motif-tribe">Penan</span>
+        <p class="teaser">Over, under, over — the tight geometry of the ajat basket.</p>
+        <span class="hint">Hover for the story</span>
+      </article>
+
+      <article class="motif-card motif-hover reveal" data-motif="hornbill" tabindex="0"
+               role="img" aria-label="Tingang, the hornbill motif of the Kayan and Kenyah — the great bird of nobility, bravery and messages to the upper world">
+        <svg class="motif-art" viewBox="0 0 200 200" aria-hidden="true"><use href="#m-hornbill"></use></svg>
+        <h3>The Great Hornbill</h3>
+        <div class="local-name">Tingang</div><br>
+        <span class="motif-tribe">Kayan · Kenyah</span>
+        <p class="teaser">Sarawak's sacred bird — feathers worn only by the brave.</p>
+        <span class="hint">Hover for the story</span>
+      </article>
+
+      <article class="motif-card motif-hover reveal" data-motif="tree" tabindex="0"
+               role="img" aria-label="The Tree of Life — the branching motif of Orang Ulu murals and textiles, joining the upper world, this world and the world below">
+        <svg class="motif-art" viewBox="0 0 200 200" aria-hidden="true"><use href="#m-tree"></use></svg>
+        <h3>The Tree of Life</h3>
+        <div class="local-name">Pohon Kehidupan</div><br>
+        <span class="motif-tribe">Orang Ulu</span>
+        <p class="teaser">One trunk, many branches — a whole cosmology in a single plant.</p>
+        <span class="hint">Hover for the story</span>
+      </article>
+    </div>
+  </div>
+</section>
+
+<svg class="divider-strip" aria-hidden="true"><rect width="100%" height="100%" fill="url(#diamondStrip)"/></svg>
+
+<!-- ============================================================
+     ROBOT PLOTTER FEATURE
+     ============================================================ -->
+<section class="plotter" id="plotter">
+  <svg class="plotter-bg-motif" viewBox="0 0 200 200" aria-hidden="true"><use href="#m-weave"></use></svg>
+
+  <div class="wrap">
+    <div class="plotter-grid">
+      <div class="plotter-figure reveal">
+        <!-- Stylised plotter: gantry frame, twin belts, pen carriage
+             mid-way through drawing an aso' spiral -->
+        <svg viewBox="0 0 400 340" role="img" aria-label="Illustration of the HeriTech plotter drawing an aso' motif">
+          <rect x="14" y="14" width="372" height="312" rx="14" fill="none" stroke="#C9A84C" stroke-width="4"/>
+          <line x1="40" y1="60" x2="360" y2="60" stroke="#3B1F0A" stroke-width="10" stroke-linecap="round"/>
+          <line x1="40" y1="60" x2="360" y2="60" stroke="#C9A84C" stroke-width="3" stroke-dasharray="10 8"/>
+          <line x1="196" y1="60" x2="196" y2="300" stroke="#3B1F0A" stroke-width="8" stroke-linecap="round"/>
+          <line x1="196" y1="60" x2="196" y2="300" stroke="#C9A84C" stroke-width="2.5" stroke-dasharray="8 7"/>
+          <!-- carriage + pen -->
+          <circle cx="196" cy="185" r="17" fill="#111" stroke="#E4B84D" stroke-width="4"/>
+          <circle cx="196" cy="185" r="5" fill="#F5D17A"/>
+          <!-- the drawing taking shape beneath the pen -->
+          <g transform="translate(120 140) scale(0.75)">
+            <path d="M52 168 C24 148 14 118 20 88 C27 55 56 34 92 32 C124 30 152 50 156 80"
+                  fill="none" stroke="#F5D17A" stroke-width="6" stroke-linecap="round" opacity=".9"/>
+          </g>
+          <!-- toolpath hint -->
+          <path d="M196 185 C230 176 250 150 252 122" fill="none" stroke="#E4B84D" stroke-width="2" stroke-dasharray="4 7" opacity=".7"/>
+          <!-- corner motor pulleys -->
+          <circle cx="40" cy="60" r="10" fill="#3B1F0A" stroke="#C9A84C" stroke-width="3"/>
+          <circle cx="360" cy="60" r="10" fill="#3B1F0A" stroke="#C9A84C" stroke-width="3"/>
         </svg>
-        <p>Library is empty.<br>Draw a motif and click<br><strong>Save to Library</strong> to add it here.</p>
       </div>
-      <div id="libGrid" class="pattern-grid" style="display:none;"></div>
-    </div>
 
-    <!-- DRAW TOOLS PANEL -->
-    <div id="drawToolsPanel" style="display:none; flex:1; padding:10px 12px; flex-direction:column; gap:9px; overflow-y:auto;">
-      <div class="tool-row">
-        <span class="tool-label">Tool</span>
-        <button class="tool-btn active" id="toolPen" data-tool="pen">✏ Pen</button>
-        <button class="tool-btn" id="toolLine" data-tool="line">╱ Line</button>
-        <button class="tool-btn" id="toolEraser" data-tool="eraser">⬜ Erase</button>
-        <button class="tool-btn" id="toolFill" data-tool="fill" title="Click a closed area to fill it with the current color">🪣 Fill</button>
-      </div>
-      <div class="tool-row">
-        <span class="tool-label">Size</span>
-        <input type="range" min="1" max="20" value="3" id="brushSize">
-        <span class="size-val" id="brushSizeVal">3</span>
-      </div>
-      <div class="tool-row">
-        <span class="tool-label">Color</span>
-        <div class="color-swatches" id="colorSwatches">
-          <div class="swatch active" style="background:#000000" data-color="#000000"></div>
-          <div class="swatch" style="background:#8B0000" data-color="#8B0000"></div>
-          <div class="swatch" style="background:#FFB800" data-color="#FFB800"></div>
-          <div class="swatch" style="background:#2A6B6E" data-color="#2A6B6E"></div>
-          <div class="swatch" style="background:#5A3A8A" data-color="#5A3A8A"></div>
-          <div class="swatch" style="background:#2A5A2A" data-color="#2A5A2A"></div>
-          <div class="color-picker-wrap">
-            <input type="color" id="colorPicker" class="color-picker-input" value="#000000" title="Pick any color">
-            <input type="text" id="hexInput" class="hex-input" value="#000000" maxlength="7" spellcheck="false" title="Hex code">
-          </div>
+      <div class="plotter-text reveal">
+        <span class="eyebrow">Precision Meets Patrimony</span>
+        <h2 class="section-title">The machine that<br><em>learned to draw</em></h2>
+        <p>
+          Under the gold is real engineering: an <strong>H-bot plotter</strong> whose two belt
+          motors steer a single pen across the fabric, a servo lift that touches ink to surface
+          only where a stroke lives, and a G-code interpreter that speaks the same language as
+          industrial CNC machines.
+        </p>
+        <div class="plotter-steps">
+          <div class="pstep"><span class="n">1</span><div><h4>Draw</h4><p>Sketch freely in the browser studio, remix a saved motif, or import an SVG.</p></div></div>
+          <div class="pstep"><span class="n">2</span><div><h4>Save</h4><p>Grow a personal Heritage Library of named motifs, stored right on your device.</p></div></div>
+          <div class="pstep"><span class="n">3</span><div><h4>Generate</h4><p>One click converts your strokes into machine-readable G-code toolpaths.</p></div></div>
+          <div class="pstep"><span class="n">4</span><div><h4>Plot</h4><p>Send over USB, Wi-Fi, or straight from an iPad — and watch the pen retrace your hand.</p></div></div>
         </div>
+        <p style="margin-top:30px;">
+          <a class="btn-gold" href="studio.html">Try the Studio</a>
+        </p>
       </div>
-      <div class="draw-action-row">
-        <button class="tool-btn" id="undoBtn">↩ Undo</button>
-        <button class="tool-btn" id="clearBtn">🗑 Clear</button>
-        <button class="tool-btn" id="mirrorBtn">⊕ Mirror</button>
-      </div>
-    </div>
-
-    <!-- Tutorial reopen button — pinned bottom-right of left panel -->
-    <button class="tutorial-reopen" id="tutorialReopen" title="Show tutorial">?</button>
-  </div>
-
-  <!-- ===== CENTRE CANVAS ===== -->
-  <div class="canvas-area">
-    <div class="canvas-toolbar">
-      <button class="ctb-btn" id="zoomInBtn">＋ Zoom</button>
-      <button class="ctb-btn" id="zoomOutBtn">－ Zoom</button>
-      <div class="ctb-sep"></div>
-      <button class="ctb-btn primary" id="saveToLibraryBtn">💾 Save to Library</button>
-      <div class="ctb-sep"></div>
-      <button class="ctb-btn" id="exportSvgBtn">⬇ Export SVG</button>
-      <button class="ctb-btn" id="resetBtn">✕ Reset</button>
-      <span class="ctb-label" id="canvasInfo">500 × 500 px · Library mode</span>
-    </div>
-
-    <div class="canvas-wrap" id="canvasWrap">
-      <canvas id="mainCanvas" width="500" height="500"></canvas>
-      <div class="canvas-hint" id="canvasHint">Switch to Draw mode to begin — or load a motif from the Library</div>
     </div>
   </div>
+</section>
 
-  <!-- ===== RIGHT PANEL ===== -->
-  <div class="right-panel">
-    <div class="panel-title">G-Code Output</div>
-
-    <!-- G-Code area -->
-    <div class="gcode-section">
-      <div class="gcode-header">
-        <span class="gcode-title">⚙ Preview</span>
-        <div class="gcode-actions">
-          <button class="gcode-btn" id="copyGcodeBtn">Copy</button>
-          <button class="gcode-btn" id="downloadGcodeBtn">⬇ .nc</button>
-        </div>
-      </div>
-      <div class="gcode-box" id="gcodeBox">
-        <span class="gcode-line-comment">; HeriTech Pattern Studio</span><br>
-        <span class="gcode-line-comment">; G-code will appear here</span><br>
-        <span class="gcode-line-comment">; after generation.</span><br><br>
-        <span class="gcode-line-comment">; Workflow:</span><br>
-        <span class="gcode-line-comment">; 1. Draw a motif on the canvas</span><br>
-        <span class="gcode-line-comment">; 2. Save to Library</span><br>
-        <span class="gcode-line-comment">; 3. Click Generate G-Code</span><br>
-        <span class="gcode-line-comment">; 4. Send to Arduino (USB) or ESP32 (Wi-Fi)</span>
-      </div>
-      <div class="gen-btn-row">
-        <button class="gen-btn" id="generateGcodeBtn">▶ Generate G-Code</button>
-      </div>
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer>
+  <svg class="divider-strip" aria-hidden="true" style="opacity:.8"><rect width="100%" height="100%" fill="url(#diamondStrip)"/></svg>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a class="nav-logo" href="#top" aria-label="Back to top">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><use href="#m-mata"></use></svg>
+        <span class="nav-logo-name">Heri<span>Tech</span></span>
+      </a>
+      <p class="footer-ack">
+        Made in respectful celebration of the living traditions of the Kenyah, Kayan,
+        Kelabit, Penan and all Orang Ulu peoples of Sarawak. These motifs belong to their
+        communities — we draw them to honour, never to own.
+      </p>
     </div>
-
-    <!-- Send to Robot -->
-    <div class="send-section">
-      <div class="send-panel-label">🤖 Send to HeriTech</div>
-      <div class="send-mode-tabs">
-        <button class="mode-tab active" id="modeUsbBtn" type="button">🔌 USB (Arduino)</button>
-        <button class="mode-tab" id="modeWifiBtn" type="button">📶 Wi-Fi (ESP32)</button>
-      </div>
-      <div class="esp-row" id="wifiRow" style="display:none;">
-        <input type="text" id="espIpInput" placeholder="ESP32 IP (e.g. 192.168.1.42)" value="192.168.1.42">
-      </div>
-      <button class="send-btn" id="serialConnectBtn" type="button">🔌 Connect Arduino</button>
-      <button class="send-btn" id="sendBtn" disabled>
-        ▶ Send to Arduino
-      </button>
-      <div class="send-status" id="sendStatus">Generate G-code first, then send.</div>
-    </div>
+    <nav class="footer-links" aria-label="Footer">
+      <a href="#heritage">Heritage</a>
+      <a href="#motifs">The Motifs</a>
+      <a href="#plotter">The Plotter</a>
+      <a href="studio.html">Pattern Studio</a>
+    </nav>
   </div>
-</main>
+  <div class="footer-bottom">HERITECH · SARAWAK, BORNEO · NRC 2026</div>
+</footer>
 
-<!-- MODAL (name prompt + confirm) -->
-<div class="modal-overlay" id="modalOverlay">
-  <div class="modal">
-    <div class="modal-icon" id="modalIcon">💾</div>
-    <h2 id="modalTitle">Save Motif</h2>
-    <p id="modalMsg">Give this motif a name for your Heritage Library.</p>
-    <input type="text" id="modalInput" placeholder="e.g. Aso Motif" style="display:none;">
-    <div class="modal-btns">
-      <button class="modal-btn" id="modalCancelBtn">Cancel</button>
-      <button class="modal-btn primary" id="modalConfirm">Save</button>
-    </div>
-  </div>
+<!-- ============================================================
+     MOTIF TOOLTIP (single element, repositioned per target)
+     ============================================================ -->
+<div class="motif-tip" id="motifTip" role="tooltip" aria-hidden="true">
+  <h4 id="tipName"></h4>
+  <div class="tip-local" id="tipLocal"></div>
+  <span class="tip-tribe" id="tipTribe"></span>
+  <p class="tip-body" id="tipBody"></p>
 </div>
 
-<div class="toast" id="toast"></div>
+<script>
+/* ============================================================
+   MOTIF LORE — name, local name, tribe, meaning & context
+   ============================================================ */
+const MOTIFS = {
+  aso: {
+    name:  'The Dog-Dragon',
+    local: "Aso'  ·  'dog' in Kayan and Kenyah",
+    tribe: 'Kenyah · Kayan',
+    body:  "The aso' fuses the loyalty of the dog with the power of the dragon into a single guardian spirit. Its curling, unbroken line flows across woodcarvings, tattoos, shields and baby carriers, standing watch against harm. Historically the most elaborate aso' designs were reserved for aristocratic families, so the motif also spoke quietly of rank and lineage."
+  },
+  mask: {
+    name:  'The Guardian Face',
+    local: 'Bali Akang  ·  spirit face of the shield',
+    tribe: 'Kenyah',
+    body:  "Painted large across war shields, this wide-eyed face is a friendly spirit recruited to the bearer's side — its huge eyes meet the enemy's gaze first and unsettle him before any blow lands. Fanged mouth, staring eyes and flanking spirals were often ringed with tufts of hair. It protected the warrior on one side of the shield while heirloom patterns honoured his family on the other."
+  },
+  beads: {
+    name:  'Highland Beadwork',
+    local: 'Kelabit bead lattice  ·  Bario highlands',
+    tribe: 'Kelabit',
+    body:  "In the Kelabit highlands, tiny glass and stone beads arrived over centuries of mountain trade and became heirlooms passed from mother to daughter. Worked into caps, necklaces and baby carriers, the repeating diamonds and crosses recorded family standing and were counted as real wealth. Some antique bead strands were valuable enough to be exchanged for a buffalo — or a field."
+  },
+  weave: {
+    name:  'The Rainforest Weave',
+    local: 'Ajat lattice  ·  rattan basketry',
+    tribe: 'Penan',
+    body:  "The Penan, long the most forest-dwelling of Sarawak's peoples, weave split rattan into baskets, mats and bags of astonishing precision — the ajat backpack among the finest. The over-under lattice, tight enough to need no glue or nail, reflects molong: the Penan principle of taking from the forest only what it can give back. Every band crosses another; nothing stands alone."
+  },
+  hornbill: {
+    name:  'The Great Hornbill',
+    local: 'Tingang  ·  rhinoceros hornbill',
+    tribe: 'Kayan · Kenyah',
+    body:  "The rhinoceros hornbill soars above the canopy and, in Orang Ulu belief, carries word between this world and the upper world. Its tail feathers — black banded with white — could traditionally be worn only by proven warriors and nobles, fanned in war coats and dance regalia. Today the hornbill remains the emblem of Sarawak itself: the Land of the Hornbills."
+  },
+  tree: {
+    name:  'The Tree of Life',
+    local: 'Pohon Kehidupan  ·  the branching cosmos',
+    tribe: 'Orang Ulu',
+    body:  "Painted across longhouse walls and woven into ceremonial textiles, the great branching tree holds the Orang Ulu cosmos in a single image: roots in the world below, trunk in the human world, crown in the world above where hornbills perch. Kenyah mural painters made it a signature of communal art — one trunk, many branches, every family a bough of the same living tree."
+  }
+};
 
-<!-- Bottom decorative border strip (Mata diamond chain) -->
-<div class="motif-border-bottom" aria-hidden="true"></div>
+/* ============================================================
+   TOOLTIP ENGINE — one card, repositioned per hovered/focused
+   motif, clamped to the viewport
+   ============================================================ */
+const tip = document.getElementById('motifTip');
+const tipName  = document.getElementById('tipName');
+const tipLocal = document.getElementById('tipLocal');
+const tipTribe = document.getElementById('tipTribe');
+const tipBody  = document.getElementById('tipBody');
+let tipTarget = null;
 
-<!-- Shared tooltip card for the header motif icons -->
-<div class="motif-tooltip" id="motifTooltip" role="tooltip"></div>
+function showTip(el) {
+  const data = MOTIFS[el.dataset.motif];
+  if (!data) return;
+  tipTarget = el;
+  tipName.textContent  = data.name;
+  tipLocal.textContent = data.local;
+  tipTribe.textContent = data.tribe;
+  tipBody.textContent  = data.body;
+  tip.setAttribute('aria-hidden', 'false');
 
-<script src="./script.js" defer></script>
+  // Position: below the target if there's room, above otherwise;
+  // horizontally centred then clamped inside the viewport.
+  const r = el.getBoundingClientRect();
+  tip.classList.add('show');            // show first so height measures true
+  const tw = tip.offsetWidth, th = tip.offsetHeight;
+  let left = r.left + r.width / 2 - tw / 2;
+  left = Math.max(16, Math.min(left, window.innerWidth - tw - 16));
+  let top = r.bottom + 14;
+  if (top + th > window.innerHeight - 12) top = r.top - th - 14;
+  if (top < 12) top = 12;
+  tip.style.left = left + 'px';
+  tip.style.top  = top + 'px';
+}
+
+function hideTip() {
+  tipTarget = null;
+  tip.classList.remove('show');
+  tip.setAttribute('aria-hidden', 'true');
+}
+
+document.querySelectorAll('.motif-hover').forEach(el => {
+  el.addEventListener('mouseenter', () => showTip(el));
+  el.addEventListener('mouseleave', hideTip);
+  el.addEventListener('focus', () => showTip(el));
+  el.addEventListener('blur', hideTip);
+});
+// Keep the card honest while scrolling
+window.addEventListener('scroll', () => { if (tipTarget) hideTip(); }, { passive: true });
+window.addEventListener('keydown', e => { if (e.key === 'Escape') hideTip(); });
+
+/* ============================================================
+   NAV — transparent until the page moves
+   ============================================================ */
+const nav = document.getElementById('nav');
+function onScroll() { nav.classList.toggle('scrolled', window.scrollY > 40); }
+window.addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+
+/* ============================================================
+   SCROLL REVEAL
+   ============================================================ */
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
 </body>
 </html>

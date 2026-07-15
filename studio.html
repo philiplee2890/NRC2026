@@ -1,0 +1,2090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HeriTech Pattern Studio</title>
+<link rel="icon" type="image/svg+xml" href="logo-withbg.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DESIGN TOKENS — Orang Ulu Beadwork Palette
+   Black / gold / crimson are the traditional manik (bead) colors;
+   teal is added as a secondary accent only for the new decorative
+   flourishes below — none of the functional colors (buttons,
+   active states, alerts) change meaning.
+   ============================================================ */
+:root {
+  --bone:     #FFFDF2;   /* main background */
+  --gold:     #FFB800;   /* primary buttons, active states */
+  --black:    #000000;   /* borders, text, canvas outline */
+  --crimson:  #8B0000;   /* hover, links, secondary */
+  --teal:     #1F6B63;   /* decorative accent only — corner flourishes */
+  --gold-dim: rgba(255,184,0,0.12);
+  --gold-med: rgba(255,184,0,0.25);
+  --crimson-dim: rgba(139,0,0,0.08);
+  --panel:    #FDFAF0;   /* sidebar panels */
+  --muted:    #6B6454;
+  --border:   rgba(0,0,0,0.12);
+  --border-dark: rgba(0,0,0,0.25);
+
+  --font-display: 'Fraunces', Georgia, serif;
+
+  /* Abstracted curvilinear hook/tendril line-work, in the spirit of
+     Orang Ulu carving and beadwork borders — deliberately generic
+     rather than a literal Aso or other figurative motif, since those
+     carry specific rank/lineage meaning in Kenyah/Kayan tradition. */
+  --tendril-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='6' viewBox='0 0 12 6'%3E%3Cpath d='M0,3 Q3,0 6,3 T12,3' fill='none' stroke='%23FFB800' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");
+  /* Background weave tile — a Paku (fern frond) curl, repeated at very
+     low opacity behind the panels. The one spot on the page where a
+     named, figurative motif is used purely decoratively; it's subtle
+     enough not to need attribution in the flow, but is explained in
+     the header motif strip below. */
+  --motif-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cpath d='M30,54 C30,40 30,30 30,20 C30,12 24,8 18,11 C13,13.5 15,19 21,18 C25,17 28,14 30,10' fill='none' stroke='%23000000' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  --hook-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2,9 C2,4 6,2 9,4 C11,5.5 10,8 7,7.5 C5.5,7.2 5.5,5 7,5' fill='none' stroke='%238B0000' stroke-width='1.3' stroke-linecap='round'/%3E%3C/svg%3E");
+  --corner-flourish: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M4,24 C4,14 14,14 14,4 M24,4 C24,14 14,14 14,24' fill='none' stroke='%231F6B63' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+  /* Mata (diamond/eye) chain — used for the new bottom border strip */
+  --mata-strip-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='6' viewBox='0 0 14 6'%3E%3Cpath d='M7,0.6 L12.5,3 L7,5.4 L1.5,3 Z' fill='none' stroke='%238B0000' stroke-width='1' /%3E%3C/svg%3E");
+}
+
+/* ============================================================
+   BASE RESET
+   ============================================================ */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bone);
+  color: var(--black);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 400;
+  min-height: 100vh;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   TOP ACCENT BAR
+   ============================================================ */
+.accent-bar {
+  height: 5px;
+  background-color: var(--black);
+  background-image: var(--tendril-svg);
+  background-repeat: repeat-x;
+  background-size: 12px 5px;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: var(--bone);
+  height: 58px;
+  position: relative;
+}
+/* Echoes the top accent bar as an inset trim instead of a flat rule */
+header::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 4px;
+  background-color: var(--black);
+  background-image: var(--tendril-svg);
+  background-repeat: repeat-x;
+  background-size: 11px 4px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.logo-icon {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+}
+.logo-text h1 {
+  font-family: var(--font-display);
+  font-size: 0.98rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--black);
+  line-height: 1.2;
+}
+.logo-text p {
+  font-size: 0.68rem;
+  color: var(--muted);
+  font-weight: 300;
+  letter-spacing: 0.04em;
+}
+
+.header-steps {
+  display: flex;
+  gap: 4px;
+}
+.hstep {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1.5px solid transparent;
+  cursor: default;
+  transition: all 0.25s;
+}
+.hstep.active {
+  color: var(--black);
+  border-color: var(--gold);
+  background: var(--gold-dim);
+}
+.hstep .snum {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  font-weight: 700;
+}
+
+/* ============================================================
+   MAIN LAYOUT
+   ============================================================ */
+main {
+  display: grid;
+  grid-template-columns: 255px 1fr 275px;
+  height: calc(100vh - 63px);
+}
+
+@media (max-width: 980px) {
+  body { overflow: auto; }
+  main {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "top"
+      "middle"
+      "bottom";
+    height: auto;
+  }
+
+  .left-panel,
+  .right-panel,
+  .canvas-area {
+    min-height: auto;
+  }
+
+  .left-panel,
+  .right-panel {
+    border-right: none;
+    border-bottom: 2px solid var(--black);
+  }
+
+  .canvas-area {
+    order: 2;
+  }
+
+  .right-panel {
+    order: 3;
+  }
+}
+
+@media (max-width: 640px) {
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    height: auto;
+    padding: 12px 14px;
+  }
+
+  .header-steps {
+    flex-wrap: wrap;
+  }
+
+  .ai-toggle-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .ai-drawer {
+    width: 100vw;
+  }
+
+  .chat-input-row {
+    flex-wrap: wrap;
+  }
+
+  .chat-input-row textarea {
+    width: 100%;
+    min-height: 48px;
+    height: 48px;
+  }
+
+  .chat-voice-btn,
+  .chat-stop-btn,
+  .chat-send-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .canvas-toolbar {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .ctb-btn,
+  .gcode-btn,
+  .gen-btn,
+  .send-btn {
+    width: 100%;
+  }
+
+  /* Decorative elements simplify away on very small screens:
+     background pattern off, bottom border strip flattens to a
+     plain rule. (Motif icon strip is hidden further down, after
+     its definition — CSS source order matters for this tie.) */
+  .left-panel::before,
+  .right-panel::before,
+  .canvas-area::before {
+    display: none;
+  }
+  .motif-border-bottom { background-image: none; }
+}
+
+/* ============================================================
+   SHARED PANEL STYLES
+   ============================================================ */
+.panel-title {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 11px 16px 9px;
+  border-bottom: 1px solid var(--border-dark);
+}
+.panel-title::before {
+  content: '';
+  display: inline-block;
+  width: 12px; height: 12px;
+  margin-right: 6px;
+  vertical-align: -2px;
+  background-image: var(--hook-icon);
+  background-repeat: no-repeat;
+  opacity: 0.7;
+}
+
+/* ============================================================
+   LEFT PANEL
+   ============================================================ */
+.left-panel {
+  background: var(--panel);
+  border-right: 2px solid var(--black);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+/* Faint woven-mat texture — a nod to beadwork boards without competing with content */
+.left-panel::before,
+.right-panel::before,
+.canvas-area::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--motif-tile);
+  background-repeat: repeat;
+  opacity: 0.06;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Mode toggle */
+.mode-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.mode-btn {
+  background: transparent;
+  border: 1.5px solid var(--border-dark);
+  color: var(--muted);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 7px 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+.mode-btn.active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--black);
+}
+.mode-btn:not(.active):hover {
+  border-color: var(--crimson);
+  color: var(--crimson);
+}
+
+/* ---- Heritage Library (LEFT PANEL) ---- */
+.heritage-library {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 12px 12px;
+}
+.heritage-library::-webkit-scrollbar { width: 3px; }
+.heritage-library::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 2px; }
+
+.lib-import-btn {
+  width: 100%;
+  background: transparent;
+  border: 1.5px dashed var(--border-dark);
+  color: var(--muted);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 9px 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 10px;
+}
+.lib-import-btn:hover {
+  border-color: var(--gold);
+  border-style: solid;
+  color: var(--black);
+  background: var(--gold-dim);
+}
+
+.lib-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 100%;
+  min-height: 120px;
+  color: var(--muted);
+  text-align: center;
+  padding: 20px;
+}
+.lib-empty svg { opacity: 0.3; }
+.lib-empty p { font-size: 0.75rem; line-height: 1.6; }
+
+.lib-section-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin: 10px 0 6px;
+}
+.pattern-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-bottom: 8px;
+}
+
+/* Saved library cards */
+.lib-card {
+  aspect-ratio: 1;
+  background: var(--bone);
+  border: 2px solid var(--border-dark);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  overflow: hidden;
+  position: relative;
+}
+.lib-card:hover {
+  border-color: var(--gold);
+  box-shadow: 0 2px 10px rgba(255,184,0,0.2);
+}
+.lib-card.selected {
+  border-color: var(--gold);
+  background: var(--gold-dim);
+}
+.lib-card canvas {
+  width: 80%;
+  height: 80%;
+  display: block;
+}
+.lib-card-name {
+  font-size: 0.58rem;
+  font-weight: 600;
+  color: var(--black);
+  letter-spacing: 0.04em;
+  text-align: center;
+  padding: 2px 4px;
+  background: rgba(255,253,242,0.9);
+  width: 100%;
+  text-align: center;
+}
+.lib-card-del {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 16px;
+  height: 16px;
+  background: var(--crimson);
+  color: white;
+  font-size: 0.55rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+}
+.lib-card:hover .lib-card-del { display: flex; }
+
+/* ---- Draw Tools (LEFT PANEL) ---- */
+#drawToolsPanel {
+  flex: 1;
+  padding: 10px 12px;
+  display: none;
+  flex-direction: column;
+  gap: 9px;
+  overflow-y: auto;
+}
+.tool-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.tool-label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  width: 50px;
+  flex-shrink: 0;
+}
+.tool-btn {
+  background: transparent;
+  border: 1.5px solid var(--border-dark);
+  color: var(--black);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 500;
+  padding: 5px 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tool-btn.active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--black);
+}
+.tool-btn:not(.active):hover {
+  border-color: var(--crimson);
+  color: var(--crimson);
+}
+input[type=range] {
+  flex: 1;
+  appearance: none;
+  -webkit-appearance: none;
+  height: 3px;
+  background: var(--border-dark);
+  border-radius: 2px;
+  outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 13px;
+  height: 13px;
+  background: var(--gold);
+  border: 2px solid var(--black);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.size-val {
+  font-family: 'Outfit', monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--black);
+  width: 22px;
+}
+.color-swatches { display: flex; gap: 5px; flex-wrap: wrap; }
+.swatch {
+  width: 20px;
+  height: 20px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.swatch:hover { transform: scale(1.2); }
+.swatch.active { border-color: var(--black); transform: scale(1.15); }
+
+.color-picker-wrap {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 4px;
+  padding-left: 8px;
+  border-left: 1.5px solid var(--border-dark);
+}
+.color-picker-input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 2px solid var(--black);
+  border-radius: 50%;
+  cursor: pointer;
+  background: none;
+}
+.color-picker-input::-webkit-color-swatch-wrapper { padding: 0; border-radius: 50%; }
+.color-picker-input::-webkit-color-swatch { border: none; border-radius: 50%; }
+.color-picker-input::-moz-color-swatch { border: none; border-radius: 50%; }
+.hex-input {
+  width: 68px;
+  font-family: 'Outfit', monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--black);
+  background: var(--paper, #fff);
+  border: 1.5px solid var(--border-dark);
+  border-radius: 3px;
+  padding: 3px 5px;
+  text-transform: uppercase;
+}
+.hex-input:focus { outline: none; border-color: var(--gold); }
+
+.draw-action-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+/* ============================================================
+   CENTRE CANVAS AREA
+   ============================================================ */
+.canvas-area {
+  display: flex;
+  flex-direction: column;
+  background: #F5F2E8;
+  position: relative;
+}
+
+/* Toolbar */
+.canvas-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--bone);
+  border-bottom: 1.5px solid var(--black);
+  flex-wrap: wrap;
+}
+.ctb-btn {
+  background: transparent;
+  border: 1.5px solid var(--border-dark);
+  color: var(--black);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 5px 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.ctb-btn:hover {
+  border-color: var(--crimson);
+  color: var(--crimson);
+}
+.ctb-btn.primary {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--black);
+  font-weight: 700;
+}
+.ctb-btn.primary:hover {
+  background: #E6A600;
+  border-color: #E6A600;
+  color: var(--black);
+}
+.ctb-sep {
+  width: 1px;
+  height: 20px;
+  background: var(--border-dark);
+  margin: 0 3px;
+}
+.ctb-label {
+  margin-left: auto;
+  font-size: 0.6rem;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+
+/* Canvas wrap */
+.canvas-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: hidden;
+  position: relative;
+}
+#mainCanvas {
+  background: #FFFFFF;
+  cursor: crosshair;
+  border: 2px solid var(--black);
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.15);
+  transform-origin: center center;
+}
+.canvas-hint {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.72rem;
+  color: var(--muted);
+  pointer-events: none;
+  transition: opacity 0.4s;
+  white-space: nowrap;
+  background: rgba(255,253,242,0.85);
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+}
+
+/* ============================================================
+   RIGHT PANEL
+   ============================================================ */
+.right-panel {
+  background: var(--panel);
+  border-left: 2px solid var(--black);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* G-Code section */
+.gcode-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border-dark);
+}
+.gcode-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.gcode-title {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.gcode-actions { display: flex; gap: 5px; }
+.gcode-btn {
+  background: transparent;
+  border: 1.5px solid var(--border-dark);
+  color: var(--black);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 4px 9px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+.gcode-btn:hover { border-color: var(--crimson); color: var(--crimson); }
+
+.gcode-box {
+  flex: 1;
+  background: #FAFAF5;
+  border: 1.5px solid var(--border-dark);
+  padding: 10px;
+  overflow-y: auto;
+  font-family: 'Courier New', monospace;
+  font-size: 0.6rem;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.gcode-box::-webkit-scrollbar { width: 3px; }
+.gcode-box::-webkit-scrollbar-thumb { background: var(--muted); }
+.gcode-line-comment { color: #9A9080; }
+.gcode-line-move { color: #2A7A2A; font-weight: 600; }
+.gcode-line-cmd { color: var(--crimson); font-weight: 600; }
+
+/* Generate button */
+.gen-btn-row {
+  margin-top: 8px;
+}
+.gen-btn {
+  width: 100%;
+  background: var(--gold);
+  border: 2px solid var(--black);
+  color: var(--black);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 9px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.gen-btn:hover {
+  background: #E6A600;
+  box-shadow: 3px 3px 0 var(--black);
+  transform: translate(-1px, -1px);
+}
+.gen-btn:active {
+  transform: translate(0,0);
+  box-shadow: none;
+}
+
+/* Beaded trim — a row of tiny inset "beads" on the app's primary
+   call-to-action buttons, standing in for a literal stitched bead
+   edge without touching each button's existing gold identity. */
+.gen-btn::after,
+.funfact-new-btn::after,
+.ai-toggle-btn::after {
+  content: '';
+  position: absolute;
+  left: 10px; right: 10px; bottom: 3px;
+  height: 3px;
+  background-image: radial-gradient(circle, var(--black) 1.1px, transparent 1.3px);
+  background-repeat: repeat-x;
+  background-size: 8px 3px;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* Send section */
+.send-section {
+  padding: 12px 14px;
+  border-top: 1px solid var(--border-dark);
+}
+.send-panel-label {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.send-mode-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.mode-tab {
+  flex: 1;
+  background: transparent;
+  border: 1.5px solid var(--border-dark);
+  color: var(--muted);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 6px 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.mode-tab:hover { border-color: var(--gold); }
+.mode-tab.active {
+  border-color: var(--gold);
+  color: var(--black);
+  background: rgba(0,0,0,0.05);
+}
+#serialConnectBtn { margin-bottom: 8px; }
+.esp-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.esp-row input {
+  flex: 1;
+  background: var(--bone);
+  border: 1.5px solid var(--border-dark);
+  color: var(--black);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.68rem;
+  padding: 6px 9px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.esp-row input:focus { border-color: var(--gold); }
+.esp-row input::placeholder { color: var(--muted); }
+.send-btn {
+  width: 100%;
+  background: transparent;
+  border: 2px solid var(--black);
+  color: var(--black);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 9px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.send-btn:hover:not(:disabled) {
+  background: var(--crimson);
+  border-color: var(--crimson);
+  color: white;
+}
+.send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.send-status {
+  margin-top: 6px;
+  font-size: 0.68rem;
+  text-align: center;
+  color: var(--muted);
+  min-height: 16px;
+}
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--bone);
+  border: 2px solid var(--black);
+  padding: 28px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 6px 6px 0 var(--black);
+  position: relative;
+  overflow: hidden;
+}
+.modal::after {
+  content: '';
+  position: absolute;
+  bottom: 6px; right: 6px;
+  width: 24px; height: 24px;
+  background-image: var(--corner-flourish);
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 0.3;
+  pointer-events: none;
+}
+.modal-icon { font-size: 2rem; margin-bottom: 10px; }
+.modal h2 {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--black);
+  margin-bottom: 8px;
+  letter-spacing: 0.04em;
+}
+.modal h2::before {
+  content: '';
+  display: inline-block;
+  width: 12px; height: 12px;
+  margin-right: 6px;
+  vertical-align: -1px;
+  background-image: var(--hook-icon);
+  background-repeat: no-repeat;
+  opacity: 0.7;
+}
+.modal p {
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 18px;
+}
+.modal input[type=text] {
+  width: 100%;
+  background: white;
+  border: 1.5px solid var(--border-dark);
+  color: var(--black);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.85rem;
+  padding: 8px 10px;
+  outline: none;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.modal input[type=text]:focus { border-color: var(--gold); }
+.modal-btns { display: flex; gap: 8px; justify-content: center; }
+.modal-btn {
+  background: transparent;
+  border: 1.5px solid var(--border-dark);
+  color: var(--black);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 7px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+.modal-btn:hover { border-color: var(--crimson); color: var(--crimson); }
+.modal-btn.primary {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--black);
+}
+.modal-btn.primary:hover { background: #E6A600; }
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--black);
+  color: var(--bone);
+  padding: 9px 20px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  z-index: 999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  white-space: nowrap;
+  border-left: 4px solid var(--gold);
+}
+.toast.show { opacity: 1; }
+
+/* Scrollbar global */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 2px; }
+
+/* ============================================================
+   TUTORIAL POPUP
+   ============================================================ */
+.tutorial-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.tutorial-overlay.show { opacity: 1; pointer-events: all; }
+
+.tutorial-modal {
+  width: min(520px, 90vw);
+  max-height: 86vh;
+  background: var(--bone);
+  border: 2px solid var(--black);
+  box-shadow: 6px 6px 0 var(--black);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding: 18px 18px 60px;
+}
+
+.tutorial-close {
+  position: absolute;
+  top: 10px; right: 10px;
+  width: 26px; height: 26px;
+  background: transparent;
+  border: 1.5px solid var(--black);
+  color: var(--black);
+  font-size: 0.8rem;
+  cursor: pointer;
+  z-index: 5;
+  font-family: 'Outfit', sans-serif;
+}
+.tutorial-close:hover { background: var(--crimson); color: white; border-color: var(--crimson); }
+
+.tutorial-pages-wrapper { overflow: hidden; }
+.tutorial-pages-track {
+  display: flex;
+  transition: transform 0.45s cubic-bezier(.4,0,.2,1);
+}
+
+.tutorial-page {
+  flex: 0 0 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 24px 8px 0;
+}
+
+.tutorial-img-slot {
+  width: 100%;
+  aspect-ratio: 16/10;
+  border: 2px dashed var(--border-dark);
+  background: #FAFAF2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+  overflow: hidden;
+}
+.tutorial-img-slot img { width: 100%; height: 100%; object-fit: cover; }
+
+.tutorial-video-slot {
+  width: 100%;
+  aspect-ratio: 16/9;
+  border: 2px dashed var(--border-dark);
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+  overflow: hidden;
+}
+.tutorial-video-slot video,
+.tutorial-video-slot iframe { width: 100%; height: 100%; border: none; }
+
+.slot-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tutorial-title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--black);
+  margin-bottom: 8px;
+}
+.tutorial-title::before {
+  content: '';
+  display: inline-block;
+  width: 13px; height: 13px;
+  margin-right: 7px;
+  vertical-align: -1px;
+  background-image: var(--hook-icon);
+  background-repeat: no-repeat;
+  opacity: 0.7;
+}
+.tutorial-text {
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.6;
+  max-width: 380px;
+}
+
+.tutorial-footer {
+  position: absolute;
+  bottom: 14px;
+  left: 18px; right: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tutorial-arrow {
+  width: 32px; height: 32px;
+  background: transparent;
+  border: 1.5px solid var(--black);
+  color: var(--black);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Outfit', sans-serif;
+}
+.tutorial-arrow:hover { background: var(--gold); border-color: var(--gold); }
+.tutorial-arrow:disabled { opacity: 0.3; cursor: default; }
+.tutorial-arrow:disabled:hover { background: transparent; border-color: var(--black); }
+.tutorial-arrow.hidden { display: none; }
+
+.tutorial-dots { display: flex; gap: 6px; }
+.t-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.18);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.t-dot.active { background: var(--gold); transform: scale(1.3); }
+
+.tutorial-skip {
+  position: absolute;
+  bottom: 14px;
+  right: 18px;
+  background: var(--gold);
+  border: 1.5px solid var(--black);
+  color: var(--black);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 5px 12px;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-family: 'Outfit', sans-serif;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px);
+  transition: opacity 0.3s, transform 0.3s;
+}
+.tutorial-skip.show {
+  opacity: 1;
+  pointer-events: all;
+  transform: translateY(0);
+}
+.tutorial-skip:hover { background: #E6A600; }
+
+/* Reopen button — sits at bottom of the left panel */
+.tutorial-reopen {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: var(--gold);
+  border: 2px solid var(--black);
+  color: var(--black);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  z-index: 20;
+  font-family: 'Outfit', sans-serif;
+}
+.tutorial-reopen.show { opacity: 1; pointer-events: all; }
+.tutorial-reopen:hover { background: #E6A600; }
+
+/* ============================================================
+   AI ASSISTANT PANEL
+   ============================================================ */
+.ai-toggle-btn {
+  background: linear-gradient(135deg, var(--gold), #ffd24d);
+  border: 2px solid var(--black);
+  color: var(--black);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 10px 16px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  box-shadow: 0 4px 0 var(--black);
+  transform: translateY(0);
+  position: relative;
+  overflow: hidden;
+}
+.ai-toggle-btn:hover {
+  background: linear-gradient(135deg, #ffd24d, var(--gold));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--black);
+}
+.ai-toggle-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 0 var(--black);
+}
+
+.ai-drawer {
+  position: fixed;
+  top: 0; right: 0;
+  width: 380px;
+  max-width: 100vw;
+  height: 100vh;
+  background: var(--bone);
+  border-left: 2px solid var(--black);
+  box-shadow: -4px 0 24px rgba(0,0,0,0.15);
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.4s cubic-bezier(.4,0,.2,1);
+}
+.ai-drawer.open { transform: translateX(0); }
+
+.ai-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--bone);
+  flex-shrink: 0;
+  position: relative;
+}
+.ai-drawer-header::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 4px;
+  background-color: var(--black);
+  background-image: var(--tendril-svg);
+  background-repeat: repeat-x;
+  background-size: 11px 4px;
+}
+.ai-drawer-title {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--black);
+}
+.ai-drawer-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ai-lang-toggle {
+  display: flex;
+  gap: 4px;
+}
+.ai-lang-btn {
+  padding: 5px 8px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  border: 1.5px solid var(--black);
+  background: transparent;
+  color: var(--black);
+  transition: all 0.2s;
+}
+.ai-lang-btn.active { background: var(--gold); border-color: var(--gold); }
+.ai-lang-btn:hover:not(.active) { background: var(--gold-dim); }
+
+.ai-drawer-close {
+  width: 26px; height: 26px;
+  background: transparent;
+  border: 1.5px solid var(--black);
+  color: var(--black);
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  transition: all 0.2s;
+}
+.ai-drawer-close:hover { background: var(--crimson); color: white; border-color: var(--crimson); }
+
+.ai-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 2px solid var(--black);
+  flex-shrink: 0;
+}
+.ai-tab {
+  padding: 9px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+}
+.ai-tab.active { color: var(--black); border-bottom: 3px solid var(--gold); background: var(--gold-dim); }
+.ai-tab:hover:not(.active) { color: var(--crimson); }
+
+.ai-panel { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+.ai-panel.active { display: flex; }
+
+/* Fun Fact tab */
+.funfact-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 14px;
+  overflow-y: auto;
+}
+.funfact-card {
+  background: white;
+  border: 2px solid var(--black);
+  padding: 18px;
+  position: relative;
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.funfact-card::after {
+  content: '';
+  position: absolute;
+  bottom: 6px; right: 6px;
+  width: 26px; height: 26px;
+  background-image: var(--corner-flourish);
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 0.25;
+  pointer-events: none;
+}
+.funfact-badge {
+  position: absolute;
+  top: -1px; left: -1px;
+  background: var(--gold);
+  border: 1.5px solid var(--black);
+  color: var(--black);
+  font-family: var(--font-display);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  padding: 2px 8px;
+  text-transform: uppercase;
+}
+.funfact-text {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: var(--black);
+  line-height: 1.7;
+  margin-top: 16px;
+  font-style: italic;
+}
+.funfact-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.dot-spin { display: inline-flex; gap: 3px; }
+.dot-spin span {
+  width: 5px; height: 5px;
+  background: var(--gold);
+  border-radius: 50%;
+  animation: dotBounce 0.8s ease-in-out infinite;
+}
+.dot-spin span:nth-child(2) { animation-delay: 0.15s; }
+.dot-spin span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes dotBounce {
+  0%,80%,100% { transform: scale(0.6); opacity:0.4; }
+  40%          { transform: scale(1);   opacity:1; }
+}
+.funfact-new-btn {
+  width: 100%;
+  background: var(--gold);
+  border: 2px solid var(--black);
+  color: var(--black);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 10px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  position: relative;
+}
+.funfact-new-btn:hover { background: #E6A600; box-shadow: 2px 2px 0 var(--black); transform: translate(-1px,-1px); }
+.funfact-new-btn:active { transform: translate(0,0); box-shadow: none; }
+.funfact-new-btn:disabled { opacity: 0.5; cursor: not-allowed; transform:none; box-shadow:none; }
+
+.funfact-history { display: flex; flex-direction: column; gap: 8px; }
+.funfact-history-label {
+  font-size: 0.6rem; font-weight: 700;
+  letter-spacing: 0.12em; color: var(--muted); text-transform: uppercase;
+}
+.funfact-prev {
+  background: #FAFAF0;
+  border: 1px solid var(--border-dark);
+  padding: 10px 12px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.6;
+  font-style: italic;
+}
+
+/* Chat tab */
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.chat-messages::-webkit-scrollbar { width: 3px; }
+.chat-messages::-webkit-scrollbar-thumb { background: var(--muted); }
+
+.chat-msg {
+  max-width: 85%;
+  padding: 10px 13px;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  word-break: break-word;
+}
+.chat-msg.user {
+  background: var(--black);
+  color: var(--bone);
+  align-self: flex-end;
+}
+.chat-msg.ai {
+  background: white;
+  color: var(--black);
+  align-self: flex-start;
+  border: 1.5px solid var(--border-dark);
+}
+.chat-msg.ai.thinking { color: var(--muted); font-style: italic; }
+.chat-msg-label {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  opacity: 0.6;
+}
+.chat-msg-text { white-space: pre-wrap; }
+
+/* Shared TTS Replay/Stop controls — used in chat bubbles and the Fun Fact card */
+.tts-controls {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.tts-btn {
+  background: transparent;
+  border: 1px solid var(--border-dark);
+  color: var(--black);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tts-btn:hover:not(:disabled) { border-color: var(--gold); background: var(--gold-dim); }
+.tts-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.tts-lang-switch { display: flex; gap: 4px; margin-left: auto; }
+.tts-lang-btn.active { background: var(--gold); border-color: var(--gold); }
+
+.chat-suggested {
+  padding: 10px 14px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex-shrink: 0;
+  background: #FAFAF0;
+}
+.chat-chip {
+  background: transparent;
+  border: 1px solid var(--border-dark);
+  color: var(--black);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.62rem;
+  padding: 4px 9px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.chat-chip:hover { border-color: var(--gold); background: var(--gold-dim); }
+
+.chat-input-row {
+  display: flex;
+  border-top: 2px solid var(--black);
+  flex-shrink: 0;
+}
+.chat-input-row textarea {
+  flex: 1;
+  background: var(--bone);
+  border: none;
+  outline: none;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.82rem;
+  color: var(--black);
+  padding: 10px 12px;
+  resize: none;
+  height: 56px;
+  line-height: 1.5;
+}
+.chat-input-row textarea::placeholder { color: var(--muted); }
+.chat-voice-btn,
+.chat-stop-btn,
+.chat-send-btn {
+  background: linear-gradient(135deg, var(--gold), #ffd24d);
+  border: 2px solid var(--black);
+  color: var(--black);
+  font-size: 1rem;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  border-radius: 14px;
+  box-shadow: 0 4px 0 var(--black);
+  transform: translateY(0);
+}
+.chat-stop-btn {
+  background: linear-gradient(135deg, var(--crimson), #b00000);
+  color: white;
+}
+.chat-voice-btn:hover,
+.chat-send-btn:hover {
+  background: linear-gradient(135deg, #ffd24d, var(--gold));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--black);
+}
+.chat-stop-btn:hover {
+  background: linear-gradient(135deg, #b00000, var(--crimson));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--black);
+}
+.chat-voice-btn:active,
+.chat-stop-btn:active,
+.chat-send-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 0 var(--black);
+}
+.chat-voice-btn.listening {
+  background: linear-gradient(135deg, var(--crimson), #d62828);
+  color: white;
+  animation: pulseVoiceBtn 1s infinite;
+}
+.chat-voice-btn:disabled,
+.chat-stop-btn:disabled,
+.chat-send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform:none; box-shadow:none; }
+
+@keyframes pulseVoiceBtn {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+/* Backend-offline notice inside the drawer (hidden unless /api/chat is unreachable) */
+.ai-offline-banner {
+  display: none;
+  padding: 8px 14px;
+  background: var(--crimson-dim);
+  border-bottom: 1px solid var(--border-dark);
+  color: var(--crimson);
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+.ai-offline-banner.show { display: block; }
+
+/* ============================================================
+   CULTURAL MOTIF STRIP — header nav accent
+   Five stylized Orang Ulu motifs as small hoverable/focusable
+   icons, sitting beside the workflow-step indicator. Decorative
+   only — no effect on app behaviour.
+   ============================================================ */
+.header-center-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.motif-nav-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 14px;
+  border-left: 1.5px solid var(--border-dark);
+}
+.motif-icon-btn {
+  background: transparent;
+  border: none;
+  padding: 2px;
+  width: 20px;
+  height: 20px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.2s, transform 0.2s;
+}
+.motif-icon-btn svg { width: 100%; height: 100%; display: block; }
+.motif-icon-btn:hover,
+.motif-icon-btn:focus-visible {
+  color: var(--crimson);
+  transform: translateY(-1px);
+}
+.motif-icon-btn:focus-visible { outline: 1.5px solid var(--gold); outline-offset: 3px; }
+
+/* Shared tooltip card — one element, repositioned per icon */
+.motif-tooltip {
+  position: fixed;
+  z-index: 260;
+  width: 260px;
+  background: var(--bone);
+  border: 1.5px solid var(--crimson);
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.15);
+  padding: 12px 14px;
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.motif-tooltip.show { opacity: 1; transform: translateY(0); }
+.motif-tooltip-name {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--black);
+}
+.motif-tooltip-native {
+  font-size: 0.66rem;
+  font-style: italic;
+  color: var(--crimson);
+  margin-bottom: 6px;
+}
+.motif-tooltip-desc {
+  font-size: 0.74rem;
+  line-height: 1.55;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.motif-tooltip-groups span {
+  display: inline-block;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--black);
+  background: var(--gold-dim);
+  border: 1px solid var(--gold-med);
+  padding: 2px 7px;
+  margin: 0 4px 4px 0;
+}
+
+/* Bottom decorative border strip — Mata (diamond) chain, complements
+   the existing top accent-bar. Fixed + non-interactive so it can't
+   shift the app's fixed-viewport layout or block clicks. */
+.motif-border-bottom {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  height: 4px;
+  background-color: var(--black);
+  background-image: var(--mata-strip-svg);
+  background-repeat: repeat-x;
+  background-size: 14px 4px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .motif-nav-strip { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="accent-bar"></div>
+
+<!-- ============ CULTURAL MOTIF SPRITE ============
+     Five clean, stylized line-art SVGs, reused via <use> in the
+     header motif strip. Abstracted for beadwork/carving-style
+     legibility at small sizes, not literal illustrations. -->
+<svg aria-hidden="true" focusable="false" style="position:absolute; width:0; height:0; overflow:hidden;">
+  <defs>
+    <symbol id="motif-aso" viewBox="0 0 40 40">
+      <path d="M20 6 C 26 6 28 11 24 13 C 30 13 32 19 26 20 C 32 21 32 27 26 27 C 28 30 25 34 20 33 C 15 34 12 30 14 27 C 8 27 8 21 14 20 C 8 19 10 13 16 13 C 12 11 14 6 20 6 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <circle cx="20" cy="14" r="1.6" fill="currentColor"/>
+      <path d="M20 17 C 22 19 22 22 20 23 C 18 22 18 19 20 17 Z" fill="currentColor" opacity="0.55"/>
+    </symbol>
+    <symbol id="motif-paku" viewBox="0 0 40 40">
+      <path d="M20 34 C20 24 20 18 20 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M20 12 C20 8 16 6 13 8 C11 9.5 12 13 16 12.5 C18 12.2 19.3 11 20 9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M20 18 C24 18 27 15 26 12 C25.3 10 22 10 21 12.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.85"/>
+      <path d="M20 24 C15 24 12 21 13.5 18 C14.5 16 17.5 16.5 18 19" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.7"/>
+      <path d="M20 30 C25 30 28 27 26.5 24 C25.5 22 22.5 22.5 22 25" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.55"/>
+    </symbol>
+    <symbol id="motif-hornbill" viewBox="0 0 40 40">
+      <path d="M8 22 L16 22 L16 15 L23 15 L30 10 L26 16 L23 18 L23 24 L18 30 L20 32 L14 32 L16 27 L12 27 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <circle cx="19" cy="18" r="1.2" fill="currentColor"/>
+    </symbol>
+    <symbol id="motif-mata" viewBox="0 0 40 40">
+      <path d="M20 6 L32 20 L20 34 L8 20 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M20 13 L26 20 L20 27 L14 20 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+      <circle cx="20" cy="20" r="2.1" fill="currentColor"/>
+    </symbol>
+    <symbol id="motif-ukir" viewBox="0 0 40 40">
+      <path d="M20 20 C20 13 27 13 27 20 C27 27 20 27 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M20 20 C20 27 13 27 13 20 C13 13 20 13 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      <circle cx="27" cy="20" r="1.3" fill="currentColor"/>
+      <circle cx="13" cy="20" r="1.3" fill="currentColor"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- ============ ONBOARDING TUTORIAL POPUP ============ -->
+<div class="tutorial-overlay" id="tutorialOverlay">
+  <div class="tutorial-modal" id="tutorialModal">
+    <button class="tutorial-close" id="tutorialClose" title="Close">✕</button>
+
+    <div class="tutorial-pages-wrapper">
+      <div class="tutorial-pages-track" id="tutorialTrack">
+
+        <!-- PAGE 1 -->
+        <div class="tutorial-page">
+          <div class="tutorial-img-slot">
+            <span class="slot-label">Screenshot coming soon</span>
+          </div>
+          <h2 class="tutorial-title">Our Heritage Library</h2>
+        </div>
+
+        <!-- PAGE 2 -->
+        <div class="tutorial-page">
+          <div class="tutorial-img-slot">
+            <span class="slot-label">Screenshot coming soon</span>
+          </div>
+          <h2 class="tutorial-title">Draw Mode</h2>
+        </div>
+
+        <!-- PAGE 3 -->
+        <div class="tutorial-page">
+          <div class="tutorial-img-slot">
+            <img src="third.png" alt="Welcome">
+          </div>
+          <h2 class="tutorial-title">Toolbar</h2>
+        </div>
+
+        <!-- PAGE 4 -->
+        <div class="tutorial-page">
+          <div class="tutorial-img-slot">
+            <img src="forth.png" alt="Welcome">
+          </div>
+          <h2 class="tutorial-title">Generate G-Code</h2>
+        </div>
+
+        <!-- PAGE 5 -->
+        <div class="tutorial-page">
+          <div class="tutorial-img-slot">
+            <img src="fifth.png" alt="Welcome">
+          </div>
+          <h2 class="tutorial-title">Send G-Code to HeriTech</h2>
+        </div>
+
+        <!-- PAGE 6 — VIDEO DEMO -->
+        <div class="tutorial-page">
+          <div class="tutorial-video-slot">
+            <!-- 🎥 INSERT DEMO VIDEO HERE -->
+            <!-- e.g. <video controls src="demo.mp4"></video> -->
+            <!-- or <iframe src="https://www.youtube.com/embed/VIDEO_ID"></iframe> -->
+            <span class="slot-label">Demo Video</span>
+          </div>
+          <h2 class="tutorial-title">See It In Action</h2>
+          <p class="tutorial-text">Watch a full walkthrough of designing a motif and sending it to the robot.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="tutorial-footer">
+      <button class="tutorial-arrow" id="tutorialPrev">←</button>
+      <div class="tutorial-dots" id="tutorialDots"></div>
+      <button class="tutorial-arrow" id="tutorialNext">→</button>
+    </div>
+
+    <button class="tutorial-skip" id="tutorialSkip">Start Designing →</button>
+  </div>
+</div>
+
+<header>
+  <div class="logo">
+    <img src="logo.png" alt="HeriTech Logo" class="logo-icon">
+    <div class="logo-text">
+      <h1>HeriTech Pattern Studio</h1>
+      <p>Cultural Beadwork Automation System · Sarawak</p>
+    </div>
+  </div>
+  <div class="header-center-group">
+    <div class="header-steps">
+      <div class="hstep active" id="step1"><span class="snum">1</span> Draw</div>
+      <div class="hstep" id="step2"><span class="snum">2</span> Save</div>
+      <div class="hstep" id="step3"><span class="snum">3</span> G-Code</div>
+      <div class="hstep" id="step4"><span class="snum">4</span> Send</div>
+    </div>
+
+    <!-- Cultural motif strip — hover or focus an icon for its story -->
+    <nav class="motif-nav-strip" aria-label="Orang Ulu cultural motifs">
+      <button type="button" class="motif-icon-btn" data-motif="aso" aria-label="Aso — dog-dragon motif, a Kenyah and Kayan symbol of protection and bravery">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><use href="#motif-aso"></use></svg>
+      </button>
+      <button type="button" class="motif-icon-btn" data-motif="paku" aria-label="Paku — fern frond motif, symbolising growth and the rainforest">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><use href="#motif-paku"></use></svg>
+      </button>
+      <button type="button" class="motif-icon-btn" data-motif="hornbill" aria-label="Burung Enggang — hornbill motif, a sacred bird symbolising nobility">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><use href="#motif-hornbill"></use></svg>
+      </button>
+      <button type="button" class="motif-icon-btn" data-motif="mata" aria-label="Mata — eye and diamond motif, representing vision and protection">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><use href="#motif-mata"></use></svg>
+      </button>
+      <button type="button" class="motif-icon-btn" data-motif="ukir" aria-label="Ukir — interlocking spiral motif, symbolising continuity and ancestry">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><use href="#motif-ukir"></use></svg>
+      </button>
+    </nav>
+  </div>
+  <div style="display:flex; align-items:center; gap:10px;">
+    <a href="index.html" class="ai-toggle-btn" style="text-decoration:none;">🏠 Home</a>
+    <button class="ai-toggle-btn" id="aiToggleBtn">🤖 Ask AI</button>
+  </div>
+</header>
+
+<!-- ============ AI ASSISTANT DRAWER ============ -->
+<div class="ai-drawer" id="aiDrawer">
+
+  <div class="ai-drawer-header">
+    <div class="ai-drawer-title">🤖 HeriTech AI Guide</div>
+    <div class="ai-drawer-header-right">
+      <div class="ai-lang-toggle" id="aiLangToggle">
+        <button class="ai-lang-btn active" data-lang="en" title="Reply in English">EN</button>
+        <button class="ai-lang-btn" data-lang="ms" title="Reply in Bahasa Malaysia">BM</button>
+      </div>
+      <button class="ai-drawer-close" id="aiDrawerClose">✕</button>
+    </div>
+  </div>
+
+  <div class="ai-offline-banner" id="aiOfflineBanner">
+    ⚠ Can't reach the AI server right now. This feature needs the backend from your <code>/server.js</code> running (see SETUP.md) — it won't work on GitHub Pages alone.
+  </div>
+
+  <!-- Tabs -->
+  <div class="ai-tabs">
+    <button class="ai-tab active" id="tabFunfact">✨ Fun Facts</button>
+    <button class="ai-tab"        id="tabChat">💬 Ask Anything</button>
+  </div>
+
+  <!-- FUN FACT PANEL -->
+  <div class="ai-panel active" id="panelFunfact">
+    <div class="funfact-area" id="funfactArea">
+      <div class="funfact-card" id="funfactCard">
+        <div class="funfact-badge">★ Orang Ulu Fun Fact</div>
+        <div class="funfact-text" id="funfactText">Click the button below to discover a fascinating fact about Orang Ulu culture, beadwork, and traditions.</div>
+      </div>
+      <button class="funfact-new-btn" id="funfactBtn">✨ New Fun Fact</button>
+      <div class="funfact-history" id="funfactHistory"></div>
+    </div>
+  </div>
+
+  <!-- CHAT PANEL -->
+  <div class="ai-panel" id="panelChat">
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-msg ai">
+        <div class="chat-msg-label">HeriTech AI</div>
+        Selamat datang! I'm the HeriTech cultural guide. Ask me anything about Orang Ulu beadwork, traditions, or motifs.
+      </div>
+    </div>
+    <div class="chat-suggested" id="chatSuggested">
+      <button class="chat-chip">What do beads symbolise?</button>
+      <button class="chat-chip">Tell me about Aso motifs</button>
+      <button class="chat-chip">Orang Ulu tribes in Sarawak</button>
+      <button class="chat-chip">How is a costume made?</button>
+    </div>
+    <div class="chat-input-row">
+      <textarea id="chatInput" placeholder="Ask about Orang Ulu culture..."></textarea>
+      <button class="chat-voice-btn" id="chatVoiceBtn" title="Speak your question">🎤</button>
+      <button class="chat-stop-btn" id="chatStopBtn" title="Stop listening">■</button>
+      <button class="chat-send-btn" id="chatSendBtn">➤</button>
+    </div>
+    <div class="chat-voice-status" id="chatVoiceStatus">Tap the mic and speak your question.</div>
+  </div>
+
+</div>
+
+<main>
+  <!-- ===== LEFT PANEL — Heritage Library ===== -->
+  <div class="left-panel">
+    <div class="panel-title">Heritage Library</div>
+
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="modeLibBtn" data-mode="library">📚 Library</button>
+      <button class="mode-btn" id="modeDrawBtn" data-mode="draw">✏️ Draw</button>
+    </div>
+
+    <!-- LIBRARY PANEL -->
+    <div id="libraryPanel" class="heritage-library">
+      <button class="lib-import-btn" id="importSvgBtn">⬆ Import SVG</button>
+      <input type="file" id="importSvgInput" accept=".svg,image/svg+xml" style="display:none;">
+      <div id="libEmpty" class="lib-empty">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+          <rect x="8" y="8" width="32" height="32" rx="2" stroke="#000" stroke-width="1.5"/>
+          <path d="M16 24h16M24 16v16" stroke="#000" stroke-width="1.5"/>
+        </svg>
+        <p>Library is empty.<br>Draw a motif and click<br><strong>Save to Library</strong> to add it here.</p>
+      </div>
+      <div id="libGrid" class="pattern-grid" style="display:none;"></div>
+    </div>
+
+    <!-- DRAW TOOLS PANEL -->
+    <div id="drawToolsPanel" style="display:none; flex:1; padding:10px 12px; flex-direction:column; gap:9px; overflow-y:auto;">
+      <div class="tool-row">
+        <span class="tool-label">Tool</span>
+        <button class="tool-btn active" id="toolPen" data-tool="pen">✏ Pen</button>
+        <button class="tool-btn" id="toolLine" data-tool="line">╱ Line</button>
+        <button class="tool-btn" id="toolEraser" data-tool="eraser">⬜ Erase</button>
+        <button class="tool-btn" id="toolFill" data-tool="fill" title="Click a closed area to fill it with the current color">🪣 Fill</button>
+      </div>
+      <div class="tool-row">
+        <span class="tool-label">Size</span>
+        <input type="range" min="1" max="20" value="3" id="brushSize">
+        <span class="size-val" id="brushSizeVal">3</span>
+      </div>
+      <div class="tool-row">
+        <span class="tool-label">Color</span>
+        <div class="color-swatches" id="colorSwatches">
+          <div class="swatch active" style="background:#000000" data-color="#000000"></div>
+          <div class="swatch" style="background:#8B0000" data-color="#8B0000"></div>
+          <div class="swatch" style="background:#FFB800" data-color="#FFB800"></div>
+          <div class="swatch" style="background:#2A6B6E" data-color="#2A6B6E"></div>
+          <div class="swatch" style="background:#5A3A8A" data-color="#5A3A8A"></div>
+          <div class="swatch" style="background:#2A5A2A" data-color="#2A5A2A"></div>
+          <div class="color-picker-wrap">
+            <input type="color" id="colorPicker" class="color-picker-input" value="#000000" title="Pick any color">
+            <input type="text" id="hexInput" class="hex-input" value="#000000" maxlength="7" spellcheck="false" title="Hex code">
+          </div>
+        </div>
+      </div>
+      <div class="draw-action-row">
+        <button class="tool-btn" id="undoBtn">↩ Undo</button>
+        <button class="tool-btn" id="clearBtn">🗑 Clear</button>
+        <button class="tool-btn" id="mirrorBtn">⊕ Mirror</button>
+      </div>
+    </div>
+
+    <!-- Tutorial reopen button — pinned bottom-right of left panel -->
+    <button class="tutorial-reopen" id="tutorialReopen" title="Show tutorial">?</button>
+  </div>
+
+  <!-- ===== CENTRE CANVAS ===== -->
+  <div class="canvas-area">
+    <div class="canvas-toolbar">
+      <button class="ctb-btn" id="zoomInBtn">＋ Zoom</button>
+      <button class="ctb-btn" id="zoomOutBtn">－ Zoom</button>
+      <div class="ctb-sep"></div>
+      <button class="ctb-btn primary" id="saveToLibraryBtn">💾 Save to Library</button>
+      <div class="ctb-sep"></div>
+      <button class="ctb-btn" id="exportSvgBtn">⬇ Export SVG</button>
+      <button class="ctb-btn" id="resetBtn">✕ Reset</button>
+      <span class="ctb-label" id="canvasInfo">500 × 500 px · Library mode</span>
+    </div>
+
+    <div class="canvas-wrap" id="canvasWrap">
+      <canvas id="mainCanvas" width="500" height="500"></canvas>
+      <div class="canvas-hint" id="canvasHint">Switch to Draw mode to begin — or load a motif from the Library</div>
+    </div>
+  </div>
+
+  <!-- ===== RIGHT PANEL ===== -->
+  <div class="right-panel">
+    <div class="panel-title">G-Code Output</div>
+
+    <!-- G-Code area -->
+    <div class="gcode-section">
+      <div class="gcode-header">
+        <span class="gcode-title">⚙ Preview</span>
+        <div class="gcode-actions">
+          <button class="gcode-btn" id="copyGcodeBtn">Copy</button>
+          <button class="gcode-btn" id="downloadGcodeBtn">⬇ .nc</button>
+        </div>
+      </div>
+      <div class="gcode-box" id="gcodeBox">
+        <span class="gcode-line-comment">; HeriTech Pattern Studio</span><br>
+        <span class="gcode-line-comment">; G-code will appear here</span><br>
+        <span class="gcode-line-comment">; after generation.</span><br><br>
+        <span class="gcode-line-comment">; Workflow:</span><br>
+        <span class="gcode-line-comment">; 1. Draw a motif on the canvas</span><br>
+        <span class="gcode-line-comment">; 2. Save to Library</span><br>
+        <span class="gcode-line-comment">; 3. Click Generate G-Code</span><br>
+        <span class="gcode-line-comment">; 4. Send to Arduino (USB) or ESP32 (Wi-Fi)</span>
+      </div>
+      <div class="gen-btn-row">
+        <button class="gen-btn" id="generateGcodeBtn">▶ Generate G-Code</button>
+      </div>
+    </div>
+
+    <!-- Send to Robot -->
+    <div class="send-section">
+      <div class="send-panel-label">🤖 Send to HeriTech</div>
+      <div class="send-mode-tabs">
+        <button class="mode-tab active" id="modeUsbBtn" type="button">🔌 USB (Arduino)</button>
+        <button class="mode-tab" id="modeWifiBtn" type="button">📶 Wi-Fi (ESP32)</button>
+        <button class="mode-tab" id="modeBridgeBtn" type="button">🌉 PC Bridge</button>
+      </div>
+      <div class="esp-row" id="wifiRow" style="display:none;">
+        <input type="text" id="espIpInput" placeholder="ESP32 IP (e.g. 192.168.1.42)" value="192.168.1.42">
+      </div>
+      <div class="send-status" id="bridgeHint" style="display:none;">Sends over Wi-Fi to the PC that's plugged into the Arduino via USB — that PC must be running the HeriTech server, and this device (e.g. iPad) must be on the same Wi-Fi network and loaded from that PC's local address.</div>
+      <button class="send-btn" id="serialConnectBtn" type="button">🔌 Connect Arduino</button>
+      <button class="send-btn" id="sendBtn" disabled>
+        ▶ Send to Arduino
+      </button>
+      <div class="send-status" id="sendStatus">Generate G-code first, then send.</div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL (name prompt + confirm) -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-icon" id="modalIcon">💾</div>
+    <h2 id="modalTitle">Save Motif</h2>
+    <p id="modalMsg">Give this motif a name for your Heritage Library.</p>
+    <input type="text" id="modalInput" placeholder="e.g. Aso Motif" style="display:none;">
+    <div class="modal-btns">
+      <button class="modal-btn" id="modalCancelBtn">Cancel</button>
+      <button class="modal-btn primary" id="modalConfirm">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Bottom decorative border strip (Mata diamond chain) -->
+<div class="motif-border-bottom" aria-hidden="true"></div>
+
+<!-- Shared tooltip card for the header motif icons -->
+<div class="motif-tooltip" id="motifTooltip" role="tooltip"></div>
+
+<script src="./script.js" defer></script>
+</body>
+</html>
