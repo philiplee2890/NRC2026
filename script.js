@@ -896,31 +896,26 @@ function generateGCode() {
   // stay comfortably under your rail's real travel from that corner. Raised
   // from 100 to 150; bump further in small steps and test empty-corner runs
   // (no pen down) before trusting a full drawing at a larger size.
-  //
-  // NOTE: because output is rotated 90° CCW (below), fabricW ends up
-  // bounding the machine's physical Y travel and fabricH bounds physical X —
-  // swapped from what the names suggest. They're equal right now so it
-  // doesn't matter, but if you ever make this rectangular, map the limits
-  // accordingly instead of by name.
   const fabricW = 150, fabricH = 150;
   const scaleX  = fabricW / canvas.width;
   const scaleY  = fabricH / canvas.height;
-  // Origin (X0 Y0) is still the corner the pen is parked at before sending —
+  // Origin (X0 Y0) is the corner the pen is parked at before sending —
   // G28 latches it as (0,0), and every coordinate below comes out >= 0, so
   // the carriage only ever travels *away* from home, never back past it
   // into the bracket.
   //
-  // Output is rotated 90° CCW from the canvas: canvas Y (top=0, grows down)
-  // becomes G-code X, and canvas X becomes G-code Y, mirrored (canvas.width
-  // - x) so the result is a true rotation instead of a reflection. A plain
-  // axis swap with no flip is a mirror image across the diagonal, not a
-  // rotation — that's what was producing mirrored output.
+  // Direct (unrotated) mapping so the plotted drawing matches the canvas
+  // orientation exactly: canvas X maps straight across to G-code X (no
+  // mirror). Canvas Y grows downward from the top, but G-code Y grows
+  // upward from the bottom-left origin, so Y is flipped (canvas.height - y)
+  // — canvas top ends up far from the origin (bed "top"), canvas bottom
+  // ends up near the origin (bed "bottom"), matching what's on screen.
 
   let lines = [];
   lines.push(`; ============================================`);
   lines.push(`; HeriTech Pattern Studio — G-Code Output`);
   lines.push(`; Generated: ${new Date().toLocaleString()}`);
-  lines.push(`; Work area: ${fabricH}x${fabricW}mm (rotated 90° CCW)`);
+  lines.push(`; Work area: ${fabricW}x${fabricH}mm`);
   lines.push(`; Strokes: ${vectorStrokes.length}`);
   lines.push(`; Machine: HeriTech XY Plotter (Grbl/ESP32)`);
   lines.push(`; ============================================`);
@@ -945,21 +940,21 @@ function generateGCode() {
       : stroke.points;
 
     // Move to start
-    const sx = (pts[0].y * scaleY).toFixed(2);
-    const sy = ((canvas.width - pts[0].x) * scaleX).toFixed(2);
+    const sx = (pts[0].x * scaleX).toFixed(2);
+    const sy = ((canvas.height - pts[0].y) * scaleY).toFixed(2);
     lines.push(`G0 X${sx} Y${sy}`);
     lines.push(`M3 S255    ; lower chalk`);
 
     // Draw through points (downsample pen strokes to reduce file size)
     const step = stroke.tool === 'pen' ? Math.max(1, Math.floor(pts.length/60)) : 1;
     for (let j = step; j < pts.length; j += step) {
-      const gx = (pts[j].y * scaleY).toFixed(2);
-      const gy = ((canvas.width - pts[j].x) * scaleX).toFixed(2);
+      const gx = (pts[j].x * scaleX).toFixed(2);
+      const gy = ((canvas.height - pts[j].y) * scaleY).toFixed(2);
       lines.push(`G1 X${gx} Y${gy}`);
     }
     // Ensure last point
-    const ex = (pts[pts.length-1].y * scaleY).toFixed(2);
-    const ey = ((canvas.width - pts[pts.length-1].x) * scaleX).toFixed(2);
+    const ex = (pts[pts.length-1].x * scaleX).toFixed(2);
+    const ey = ((canvas.height - pts[pts.length-1].y) * scaleY).toFixed(2);
     lines.push(`G1 X${ex} Y${ey}`);
     lines.push(`M5 S0      ; lift chalk`);
   });
