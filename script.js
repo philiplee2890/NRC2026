@@ -898,19 +898,17 @@ function generateGCode() {
   // plate's centerline is 360 - 150 = 210mm; bump further in small steps
   // and test empty-corner runs (no pen down) before trusting a larger size.
   const fabricW = 210, fabricH = 150;
-  const scaleX  = fabricW / canvas.width;
-  const scaleY  = fabricH / canvas.height;
+  // 90°-rotated mapping: on the physical bed, canvas X (screen "horizontal")
+  // was coming out along the bed's vertical travel, so canvas Y now drives
+  // G-code X and canvas X drives G-code Y. If a test plot comes out rotated
+  // the wrong way (90° the other direction), swap which one gets flipped:
+  // move "canvas.width - pts.x" onto the X line and drop the flip on Y.
+  const scaleX  = fabricW / canvas.height;
+  const scaleY  = fabricH / canvas.width;
   // Origin (X0 Y0) is the corner the pen is parked at before sending —
   // G28 latches it as (0,0), and every coordinate below comes out >= 0, so
   // the carriage only ever travels *away* from home, never back past it
   // into the bracket.
-  //
-  // Direct (unrotated) mapping so the plotted drawing matches the canvas
-  // orientation exactly: canvas X maps straight across to G-code X (no
-  // mirror). Canvas Y grows downward from the top, but G-code Y grows
-  // upward from the bottom-left origin, so Y is flipped (canvas.height - y)
-  // — canvas top ends up far from the origin (bed "top"), canvas bottom
-  // ends up near the origin (bed "bottom"), matching what's on screen.
 
   let lines = [];
   lines.push(`; ============================================`);
@@ -941,21 +939,21 @@ function generateGCode() {
       : stroke.points;
 
     // Move to start
-    const sx = (pts[0].x * scaleX).toFixed(2);
-    const sy = ((canvas.height - pts[0].y) * scaleY).toFixed(2);
+    const sx = (pts[0].y * scaleX).toFixed(2);
+    const sy = ((canvas.width - pts[0].x) * scaleY).toFixed(2);
     lines.push(`G0 X${sx} Y${sy}`);
     lines.push(`M3 S255    ; lower chalk`);
 
     // Draw through points (downsample pen strokes to reduce file size)
     const step = stroke.tool === 'pen' ? Math.max(1, Math.floor(pts.length/60)) : 1;
     for (let j = step; j < pts.length; j += step) {
-      const gx = (pts[j].x * scaleX).toFixed(2);
-      const gy = ((canvas.height - pts[j].y) * scaleY).toFixed(2);
+      const gx = (pts[j].y * scaleX).toFixed(2);
+      const gy = ((canvas.width - pts[j].x) * scaleY).toFixed(2);
       lines.push(`G1 X${gx} Y${gy}`);
     }
     // Ensure last point
-    const ex = (pts[pts.length-1].x * scaleX).toFixed(2);
-    const ey = ((canvas.height - pts[pts.length-1].y) * scaleY).toFixed(2);
+    const ex = (pts[pts.length-1].y * scaleX).toFixed(2);
+    const ey = ((canvas.width - pts[pts.length-1].x) * scaleY).toFixed(2);
     lines.push(`G1 X${ex} Y${ey}`);
     lines.push(`M5 S0      ; lift chalk`);
   });
