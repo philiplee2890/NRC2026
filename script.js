@@ -541,6 +541,8 @@ function startDraw(e) {
   document.getElementById('canvasHint').style.opacity = '0';
 }
 
+function midpoint(a, b) { return { x: (a.x+b.x)/2, y: (a.y+b.y)/2 }; }
+
 function draw(e) {
   if (!isDrawing || currentMode !== 'draw') return;
   const [x,y] = getPos(e);
@@ -561,10 +563,20 @@ function draw(e) {
     // Update endpoint in currentStroke for preview
     if (currentStroke) currentStroke.points[1] = {x,y};
   } else {
-    // Pen / eraser — stream draw
+    // Pen / eraser — stream draw, smoothed with a quadratic curve through
+    // point midpoints (each new point is the curve's control point, the
+    // midpoint to the next point is the curve's end) instead of straight
+    // segments, so fast/low-sample strokes don't come out jagged.
+    currentStroke.points.push({x,y});
+    const pts = currentStroke.points;
+    const n  = pts.length;
+    const p1 = pts[n-2], p2 = pts[n-1];
+    const from = n >= 3 ? midpoint(pts[n-3], p1) : p1;
+    const to   = midpoint(p1, p2);
+
     ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
-    ctx.lineTo(x, y);
+    ctx.moveTo(from.x, from.y);
+    ctx.quadraticCurveTo(p1.x, p1.y, to.x, to.y);
     if (currentTool === 'eraser') {
       ctx.globalCompositeOperation = 'destination-out';
       ctx.strokeStyle = 'rgba(0,0,0,1)';
@@ -578,12 +590,11 @@ function draw(e) {
 
     if (symmetryMode && currentTool !== 'eraser') {
       ctx.beginPath();
-      ctx.moveTo(canvas.width-lastX, lastY);
-      ctx.lineTo(canvas.width-x, y);
+      ctx.moveTo(canvas.width - from.x, from.y);
+      ctx.quadraticCurveTo(canvas.width - p1.x, p1.y, canvas.width - to.x, to.y);
       applyCtxStroke(currentColor, brushSize);
     }
 
-    if (currentStroke) currentStroke.points.push({x,y});
     lastX = x; lastY = y;
   }
 }
@@ -657,9 +668,19 @@ function drawStrokesOnCtx(c, strokes, scale=1) {
       c.moveTo(stroke.points[0].x * scale, stroke.points[0].y * scale);
       c.lineTo(stroke.points[1].x * scale, stroke.points[1].y * scale);
     } else {
-      c.moveTo(stroke.points[0].x * scale, stroke.points[0].y * scale);
-      for (let i=1; i<stroke.points.length; i++) {
-        c.lineTo(stroke.points[i].x * scale, stroke.points[i].y * scale);
+      // Smooth freehand pen/eraser strokes with a quadratic curve through
+      // point midpoints, matching the live smoothing in draw().
+      const pts = stroke.points;
+      c.moveTo(pts[0].x * scale, pts[0].y * scale);
+      if (pts.length === 2) {
+        c.lineTo(pts[1].x * scale, pts[1].y * scale);
+      } else {
+        for (let i=1; i<pts.length-1; i++) {
+          const midX = (pts[i].x + pts[i+1].x)/2 * scale;
+          const midY = (pts[i].y + pts[i+1].y)/2 * scale;
+          c.quadraticCurveTo(pts[i].x * scale, pts[i].y * scale, midX, midY);
+        }
+        c.lineTo(pts[pts.length-1].x * scale, pts[pts.length-1].y * scale);
       }
     }
     c.stroke();
