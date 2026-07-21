@@ -893,10 +893,11 @@ function generateGCode() {
 
   // HeriTech work area, mm. Origin is the bottom-left corner (see below),
   // so this is how far the carriage travels in ONE direction on each axis —
-  // stay comfortably under your rail's real travel from that corner. Raised
-  // from 100 to 150; bump further in small steps and test empty-corner runs
-  // (no pen down) before trusting a full drawing at a larger size.
-  const fabricW = 150, fabricH = 150;
+  // stay comfortably under your rail's real travel from that corner. X rail
+  // is 360mm with a 150mm-wide gantry plate, so safe max X travel for the
+  // plate's centerline is 360 - 150 = 210mm; bump further in small steps
+  // and test empty-corner runs (no pen down) before trusting a larger size.
+  const fabricW = 210, fabricH = 150;
   const scaleX  = fabricW / canvas.width;
   const scaleY  = fabricH / canvas.height;
   // Origin (X0 Y0) is the corner the pen is parked at before sending —
