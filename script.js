@@ -898,11 +898,12 @@ function generateGCode() {
   // plate's centerline is 360 - 150 = 210mm; bump further in small steps
   // and test empty-corner runs (no pen down) before trusting a larger size.
   const fabricW = 210, fabricH = 150;
-  // 90°-rotated mapping: on the physical bed, canvas X (screen "horizontal")
-  // was coming out along the bed's vertical travel, so canvas Y now drives
-  // G-code X and canvas X drives G-code Y. If a test plot comes out rotated
-  // the wrong way (90° the other direction), swap which one gets flipped:
-  // move "canvas.width - pts.x" onto the X line and drop the flip on Y.
+  // 270°-rotated mapping (90° axis swap + a further 180° flip): on the
+  // physical bed, canvas X (screen "horizontal") was coming out along the
+  // bed's vertical travel, so canvas Y now drives G-code X and canvas X
+  // drives G-code Y; the 180° on top flips which side of each axis gets
+  // subtracted. If a test plot still comes out rotated the wrong way, move
+  // the "canvas.___ - pts.___" flip onto the other line.
   const scaleX  = fabricW / canvas.height;
   const scaleY  = fabricH / canvas.width;
   // Origin (X0 Y0) is the corner the pen is parked at before sending —
@@ -939,21 +940,21 @@ function generateGCode() {
       : stroke.points;
 
     // Move to start
-    const sx = (pts[0].y * scaleX).toFixed(2);
-    const sy = ((canvas.width - pts[0].x) * scaleY).toFixed(2);
+    const sx = ((canvas.height - pts[0].y) * scaleX).toFixed(2);
+    const sy = (pts[0].x * scaleY).toFixed(2);
     lines.push(`G0 X${sx} Y${sy}`);
     lines.push(`M3 S255    ; lower chalk`);
 
     // Draw through points (downsample pen strokes to reduce file size)
     const step = stroke.tool === 'pen' ? Math.max(1, Math.floor(pts.length/60)) : 1;
     for (let j = step; j < pts.length; j += step) {
-      const gx = (pts[j].y * scaleX).toFixed(2);
-      const gy = ((canvas.width - pts[j].x) * scaleY).toFixed(2);
+      const gx = ((canvas.height - pts[j].y) * scaleX).toFixed(2);
+      const gy = (pts[j].x * scaleY).toFixed(2);
       lines.push(`G1 X${gx} Y${gy}`);
     }
     // Ensure last point
-    const ex = (pts[pts.length-1].y * scaleX).toFixed(2);
-    const ey = ((canvas.width - pts[pts.length-1].x) * scaleY).toFixed(2);
+    const ex = ((canvas.height - pts[pts.length-1].y) * scaleX).toFixed(2);
+    const ey = (pts[pts.length-1].x * scaleY).toFixed(2);
     lines.push(`G1 X${ex} Y${ey}`);
     lines.push(`M5 S0      ; lift chalk`);
   });
