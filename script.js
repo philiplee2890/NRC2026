@@ -291,6 +291,17 @@ function parseSvgToStrokes(svgText) {
         points.push(mapPoint(pt.x, pt.y));
       }
 
+      // Skip full-canvas background/artboard rects that SVG exporters (Illustrator,
+      // Inkscape, Figma) tuck in behind the real artwork — real motif strokes don't
+      // touch all four edges, so anything spanning ~the whole canvas isn't line art.
+      const xs = points.map(p => p.x), ys = points.map(p => p.y);
+      const minX = Math.min(...xs), maxX = Math.max(...xs);
+      const minY = Math.min(...ys), maxY = Math.max(...ys);
+      const EDGE = CANVAS * 0.03;
+      const isBackgroundFrame =
+        minX <= EDGE && minY <= EDGE && maxX >= CANVAS - EDGE && maxY >= CANVAS - EDGE;
+      if (isBackgroundFrame) return;
+
       strokes.push({ color, size, points, tool: 'pen' });
     });
   } finally {
@@ -932,6 +943,24 @@ function generateGCode() {
   // the carriage only ever travels *away* from home, never back past it
   // into the bracket.
 
+  // Safety clamp — freehand strokes never leave the 500x500 canvas, but an
+  // imported SVG's artwork can extend past its own declared viewBox, mapping
+  // to a point outside fabricW x fabricH. MAIN_CODE.ino has no limit switches
+  // (G28 is soft-home only), so an out-of-range coordinate doesn't error —
+  // it just jams the carriage against the frame at that exact spot. Clamp
+  // every coordinate into the safe area instead of sending it as-is.
+  let clampedCount = 0;
+  const clampX = v => {
+    const c = Math.min(Math.max(v, 0), fabricW);
+    if (c !== v) clampedCount++;
+    return c;
+  };
+  const clampY = v => {
+    const c = Math.min(Math.max(v, 0), fabricH);
+    if (c !== v) clampedCount++;
+    return c;
+  };
+
   let lines = [];
   lines.push(`; ============================================`);
   lines.push(`; HeriTech Pattern Studio — G-Code Output`);
@@ -961,21 +990,21 @@ function generateGCode() {
       : stroke.points;
 
     // Move to start
-    const sx = ((canvas.height - pts[0].y) * scaleX).toFixed(2);
-    const sy = (pts[0].x * scaleY).toFixed(2);
+    const sx = clampX((canvas.height - pts[0].y) * scaleX).toFixed(2);
+    const sy = clampY(pts[0].x * scaleY).toFixed(2);
     lines.push(`G0 X${sx} Y${sy}`);
     lines.push(`M3 S255    ; lower chalk`);
 
     // Draw through points (downsample pen strokes to reduce file size)
     const step = stroke.tool === 'pen' ? Math.max(1, Math.floor(pts.length/60)) : 1;
     for (let j = step; j < pts.length; j += step) {
-      const gx = ((canvas.height - pts[j].y) * scaleX).toFixed(2);
-      const gy = (pts[j].x * scaleY).toFixed(2);
+      const gx = clampX((canvas.height - pts[j].y) * scaleX).toFixed(2);
+      const gy = clampY(pts[j].x * scaleY).toFixed(2);
       lines.push(`G1 X${gx} Y${gy}`);
     }
     // Ensure last point
-    const ex = ((canvas.height - pts[pts.length-1].y) * scaleX).toFixed(2);
-    const ey = (pts[pts.length-1].x * scaleY).toFixed(2);
+    const ex = clampX((canvas.height - pts[pts.length-1].y) * scaleX).toFixed(2);
+    const ey = clampY(pts[pts.length-1].x * scaleY).toFixed(2);
     lines.push(`G1 X${ex} Y${ey}`);
     lines.push(`M5 S0      ; lift chalk`);
   });
@@ -998,7 +1027,11 @@ function generateGCode() {
   document.getElementById('sendBtn').disabled = false;
   document.getElementById('sendStatus').textContent = `${lines.length} lines ready — enter ESP32 IP and send.`;
   setStep(3);
-  showToast(`G-code generated — ${lines.length} lines ✓`);
+  if (clampedCount > 0) {
+    showToast(`⚠ ${clampedCount} point(s) were outside the ${fabricW}x${fabricH}mm safe area and got clamped to the edge — check your motif`);
+  } else {
+    showToast(`G-code generated — ${lines.length} lines ✓`);
+  }
 }
 
 function resetGCode() {
